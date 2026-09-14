@@ -10,9 +10,6 @@ const qsa = selector => [...document.querySelectorAll(selector)];
 const money = value => `$${Number(value || 0).toLocaleString("zh-TW")}`;
 const numberValue = value => Number(value || 0);
 const available = order => Math.max(0, numberValue(order.purchased) - numberValue(order.pending) - numberValue(order.used) - numberValue(order.refunded));
-const addOnSale = order => (order.addOns || []).reduce((sum, item) => sum + numberValue(item.price), 0);
-const addOnCost = order => (order.addOns || []).reduce((sum, item) => sum + numberValue(item.cost), 0);
-const grandTotal = order => Number.isFinite(Number(order.grandTotal)) ? numberValue(order.grandTotal) : numberValue(order.total) + addOnSale(order);
 
 function stageFor(order) {
   if (["等待客服確認", "等待付款"].includes(order.status)) return order.status;
@@ -50,18 +47,16 @@ function renderCustomers() {
 function orderFinancial(order) {
   const recognized = order.paymentStatus === "已確認";
   if (!recognized) return { revenue: 0, cost: 0, service: 0, addOnSale: 0, addOnCost: 0, addOnMargin: 0, intro: 0, source: 0, gross: 0, unallocated: 0 };
-  const extrasSale = addOnSale(order);
-  const extrasCost = addOnCost(order);
-  const hasRecordedGrandTotal = Number.isFinite(Number(order.grandTotal));
-  const recordedPayment = numberValue(order.paymentAmount);
-  const revenue = recordedPayment ? recordedPayment + (hasRecordedGrandTotal ? 0 : extrasSale) : grandTotal(order);
+  const addOnSale = (order.addOns || []).reduce((sum, item) => sum + numberValue(item.price), 0);
+  const addOnCost = (order.addOns || []).reduce((sum, item) => sum + numberValue(item.cost), 0);
+  const revenue = numberValue(order.paymentAmount);
   const cost = numberValue(order.cost);
   const service = numberValue(order.serviceFee);
   const intro = numberValue(order.introducerProfit);
   const source = numberValue(order.sourceProfit);
-  const addOnMargin = extrasSale - extrasCost;
-  const gross = revenue - cost - service - extrasCost;
-  return { revenue, cost, service, addOnSale: extrasSale, addOnCost: extrasCost, addOnMargin, intro, source, gross, unallocated: gross - intro - source };
+  const addOnMargin = addOnSale - addOnCost;
+  const gross = revenue - cost - service + addOnMargin;
+  return { revenue, cost, service, addOnSale, addOnCost, addOnMargin, intro, source, gross, unallocated: gross - intro - source };
 }
 
 function groupAmounts(rows, keyGetter, valueGetter) {
@@ -125,7 +120,7 @@ function renderOrders() {
   qs("#orders-table").innerHTML = visible.map(order => `<tr data-order-id="${order.id}">
     <td><strong>${order.lineDisplayName || order.customerName}</strong><small>${order.id}</small></td>
     <td><strong>${order.projectId}</strong><small>${order.title}</small></td>
-    <td><span class="cell-status ${statusClass(order)}">${order.paymentStatus}</span><small>${money(order.paymentAmount)} / ${money(grandTotal(order))}</small></td>
+    <td><span class="cell-status ${statusClass(order)}">${order.paymentStatus}</span><small>${money(order.paymentAmount)} / ${money(order.total)}</small></td>
     <td class="credit-cell"><b>${available(order)}</b> 可用<small>購 ${order.purchased}・處理 ${order.pending}・已用 ${order.used}</small></td>
     <td><strong>${order.docsStatus}</strong><small>${order.ticketStatus}</small></td>
     <td><strong>${order.assignedTo || "待分派"}</strong><small>${order.introducer ? `介紹：${order.introducer}` : "無介紹人"}</small></td>
@@ -140,7 +135,6 @@ function renderProjects() {
     <td><strong>${project.id}｜${project.title}</strong><small>${project.route}</small></td>
     <td><select class="inline-select" data-project-field="status"><option ${project.status === "公開" ? "selected" : ""}>公開</option><option ${project.status === "代碼限定" ? "selected" : ""}>代碼限定</option><option ${project.status === "下架" ? "selected" : ""}>下架</option></select></td>
     <td><div class="money-inputs"><label>售<input class="inline-input" data-project-field="price" type="number" value="${project.price}"></label><label>本<input class="inline-input" data-project-field="unitCost" type="number" value="${project.unitCost}"></label></div></td>
-    <td><div class="money-inputs"><label>售<input class="inline-input" data-project-field="businessPrice" type="number" value="${project.businessPrice || 0}"></label><label>本<input class="inline-input" data-project-field="businessCost" type="number" value="${project.businessCost || 0}"></label></div></td>
     <td><input class="inline-input small" data-project-field="credits" type="number" value="${project.credits}"></td>
     <td><input class="inline-input small" data-project-field="stock" type="number" value="${project.stock}"></td>
     <td><input class="inline-input date" data-project-field="expiry" value="${project.expiry}"></td>
@@ -172,21 +166,9 @@ function populateOrderForm(order) {
   const form = qs("#order-form");
   qs("#drawer-order-id").textContent = order.id;
   qs("#drawer-customer").innerHTML = `<span class="customer-avatar">${(order.lineDisplayName || order.customerName || "客").slice(0, 1)}</span><div><strong>${order.lineDisplayName || "尚未綁定 LINE"}・${order.customerName || "未填姓名"}</strong><small>${order.phone || "未填電話"}｜${order.projectId} ${order.title}</small></div>`;
-  const fields = ["status", "assignedTo", "paymentStatus", "docsStatus", "ticketStatus", "nextActionDate", "purchased", "pending", "used", "refunded", "total", "grandTotal", "paymentAmount", "cost", "serviceFee", "introducer", "introducerProfit", "sourceProfit", "internalNotes"];
+  const fields = ["status", "assignedTo", "paymentStatus", "docsStatus", "ticketStatus", "nextActionDate", "purchased", "pending", "used", "refunded", "total", "paymentAmount", "cost", "serviceFee", "introducer", "introducerProfit", "sourceProfit", "internalNotes"];
   fields.forEach(name => { if (form.elements[name]) form.elements[name].value = order[name] ?? ""; });
-  form.elements.grandTotal.value = grandTotal(order);
-  form.elements.grandTotal.readOnly = true;
-  const tickets = order.ticketSelections || [];
-  const businessCount = tickets.filter(ticket => ticket.cabin === "business").length;
-  const starluxCount = tickets.filter(ticket => ticket.starlux).length;
-  qs("#ticket-selection-summary").innerHTML = tickets.length
-    ? `<span>經濟艙 ${tickets.length - businessCount} 張</span><span>商務艙 ${businessCount} 張</span><span>指定星宇 ${starluxCount} 張</span>`
-    : `<span>舊訂單：尚無逐張選項資料</span>`;
-  const checkoutAddOns = (order.addOns || []).map((item, index) => ({ item, index })).filter(({ item }) => item.source === "checkout");
-  qs("#checkout-addons-editor").innerHTML = checkoutAddOns.length
-    ? checkoutAddOns.map(({ item, index }) => `<div class="checkout-addon-row"><span><strong>${item.name}</strong><small>${item.costStatus === "待客服填入" ? "請填入實際成本" : "已記錄成本"}</small></span><b>${money(item.price)}</b><label>成本<input type="number" min="0" value="${numberValue(item.cost)}" data-checkout-addon-cost="${index}"></label></div>`).join("")
-    : `<div class="checkout-addons-empty">這筆訂單沒有由客戶勾選的加購。</div>`;
-  const addOn = (order.addOns || []).find(item => item.source !== "checkout") || {};
+  const addOn = order.addOns?.[0] || {};
   form.elements.addOnName.value = addOn.name || "";
   form.elements.addOnPrice.value = addOn.price || 0;
   form.elements.addOnCost.value = addOn.cost || 0;
@@ -196,17 +178,11 @@ function populateOrderForm(order) {
 
 function updateProfitPreview() {
   const form = qs("#order-form");
-  const checkoutCosts = qsa("[data-checkout-addon-cost]").reduce((sum, input) => sum + numberValue(input.value), 0);
-  const manualSale = numberValue(form.elements.addOnPrice.value);
-  const manualCost = numberValue(form.elements.addOnCost.value);
-  const calculatedGrandTotal = numberValue(form.elements.total.value)
-    + (orders.find(item => item.id === selectedOrderId)?.addOns || []).filter(item => item.source === "checkout").reduce((sum, item) => sum + numberValue(item.price), 0)
-    + manualSale;
-  form.elements.grandTotal.value = calculatedGrandTotal;
-  const revenue = numberValue(form.elements.paymentAmount.value) || numberValue(form.elements.grandTotal.value);
+  const revenue = numberValue(form.elements.paymentAmount.value);
   const cost = numberValue(form.elements.cost.value);
   const service = numberValue(form.elements.serviceFee.value);
-  const gross = revenue - cost - service - checkoutCosts - manualCost;
+  const addOnMargin = numberValue(form.elements.addOnPrice.value) - numberValue(form.elements.addOnCost.value);
+  const gross = revenue - cost - service + addOnMargin;
   const allocated = numberValue(form.elements.introducerProfit.value) + numberValue(form.elements.sourceProfit.value);
   const gap = gross - allocated;
   qs("#profit-preview").innerHTML = `<div><small>訂單毛利</small><strong>${money(gross)}</strong></div><div><small>已分配</small><strong>${money(allocated)}</strong></div><div class="${gap >= 0 ? "positive" : ""}"><small>尚未分配／差額</small><strong>${money(gap)}</strong></div>`;
@@ -338,18 +314,7 @@ function saveSelectedOrder(event) {
   ["purchased", "pending", "used", "refunded", "total", "paymentAmount", "cost", "serviceFee", "introducerProfit", "sourceProfit"].forEach(name => { order[name] = numberValue(form.elements[name].value); });
   order.paid = order.paymentStatus === "已確認";
   order.statusType = order.status === "已完成" ? "completed" : "active";
-  qsa("[data-checkout-addon-cost]").forEach(input => {
-    const addOn = order.addOns?.[Number(input.dataset.checkoutAddonCost)];
-    if (!addOn) return;
-    addOn.cost = numberValue(input.value);
-    addOn.costStatus = "已填入";
-  });
-  const checkoutAddOns = (order.addOns || []).filter(item => item.source === "checkout");
-  const manualAddOn = form.elements.addOnName.value.trim()
-    ? [{ name: form.elements.addOnName.value.trim(), price: numberValue(form.elements.addOnPrice.value), cost: numberValue(form.elements.addOnCost.value), source: "manual" }]
-    : [];
-  order.addOns = [...checkoutAddOns, ...manualAddOn];
-  order.grandTotal = order.total + addOnSale(order);
+  order.addOns = form.elements.addOnName.value.trim() ? [{ name: form.elements.addOnName.value.trim(), price: numberValue(form.elements.addOnPrice.value), cost: numberValue(form.elements.addOnCost.value) }] : [];
   const time = new Date().toLocaleString("zh-TW", { hour12: false });
   order.activity = [...(order.activity || []), { at: time, text: `客服更新狀態為「${order.status}」` }];
   window.PMRStore.saveOrders(orders);
@@ -361,7 +326,7 @@ function saveSelectedOrder(event) {
 function createOrder() {
   const next = String(orders.length + 30).padStart(3, "0");
   const order = {
-    id: `PMR-260914-${next}`, customerId: "", lineUserId: "", lineDisplayName: "新客戶", customerName: "", phone: "", projectId: "待選專案", title: "尚未選擇專案", route: "", purchased: 1, pending: 0, used: 0, refunded: 0, paid: false, paymentStatus: "待客服確認", paymentAmount: 0, total: 0, grandTotal: 0, cost: 0, serviceFee: 0, introducer: "", introducerProfit: 0, sourceProfit: 0, docsStatus: "尚未補件", ticketStatus: "尚未出票", assignedTo: "待分派", nextActionDate: "2026-09-14", expiry: "2027/12/31", status: "等待客服確認", statusType: "active", internalNotes: "", ticketSelections: [], addOns: [], createdAt: "2026/09/14", activity: [{ at: "2026/09/14", text: "客服手動建立訂單" }]
+    id: `PMR-260914-${next}`, customerId: "", lineUserId: "", lineDisplayName: "新客戶", customerName: "", phone: "", projectId: "待選專案", title: "尚未選擇專案", route: "", purchased: 1, pending: 0, used: 0, refunded: 0, paid: false, paymentStatus: "待客服確認", paymentAmount: 0, total: 0, cost: 0, serviceFee: 0, introducer: "", introducerProfit: 0, sourceProfit: 0, docsStatus: "尚未補件", ticketStatus: "尚未出票", assignedTo: "待分派", nextActionDate: "2026-09-14", expiry: "2027/12/31", status: "等待客服確認", statusType: "active", internalNotes: "", addOns: [], createdAt: "2026/09/14", activity: [{ at: "2026/09/14", text: "客服手動建立訂單" }]
   };
   orders.unshift(order);
   window.PMRStore.saveOrders(orders);
@@ -373,7 +338,7 @@ function createProject() {
   const ids = new Set(projects.map(project => project.id));
   const letters = "DEFGHIJKLMNOPQRSTUVWXYZ";
   const id = [...letters].map(letter => `0914${letter}`).find(code => !ids.has(code)) || `0914X${projects.length}`;
-  projects.unshift({ id, title: "客服私人專案", route: "指定目的地", status: "代碼限定", price: 0, businessPrice: 0, unitCost: 0, businessCost: 0, credits: 1, stock: 1, expiry: "2027/12/31", special: "請填寫此專案的完整使用條件" });
+  projects.unshift({ id, title: "客服私人專案", route: "指定目的地", status: "代碼限定", price: 0, unitCost: 0, credits: 1, stock: 1, expiry: "2027/12/31", special: "請填寫此專案的完整使用條件" });
   window.PMRStore.saveProjects(projects);
   renderProjects();
   toast(`已建立 ${id}，請在表格內完成設定`);
@@ -385,7 +350,7 @@ function saveProject(projectId) {
   if (!row || !project) return;
   row.querySelectorAll("[data-project-field]").forEach(input => {
     const field = input.dataset.projectField;
-    project[field] = ["price", "businessPrice", "unitCost", "businessCost", "credits", "stock"].includes(field) ? numberValue(input.value) : input.value;
+    project[field] = ["price", "unitCost", "credits", "stock"].includes(field) ? numberValue(input.value) : input.value;
   });
   window.PMRStore.saveProjects(projects);
   renderProjects();
