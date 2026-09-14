@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#102f2d" />
+    <title>PMR 營運控制台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="admin.css" />
+    <link rel="stylesheet" href="admin-extra.css" />
+  </head>
+  <body>
+    <div class="ops-shell">
+      <aside class="sidebar">
+        <a class="ops-brand" href="index.html"><span>P</span><div><strong>PMR</strong><small>OPERATIONS</small></div></a>
+        <nav>
+          <button class="is-active" data-view="dashboard"><i>⌂</i><span>營運總覽</span></button>
+          <button data-view="orders"><i>▤</i><span>訂單管理</span><b id="nav-order-count">4</b></button>
+          <button data-view="customers"><i>◎</i><span>客戶管理</span><b id="nav-customer-count">4</b></button>
+          <button data-view="projects"><i>✦</i><span>專案管理</span></button>
+          <button data-view="reports"><i>＄</i><span>月報與分潤</span></button>
+          <button data-view="integrations"><i>⌁</i><span>串接中心</span></button>
+        </nav>
+        <div class="sidebar-note"><small>展示模式</small><p>目前與客戶前台共用本機示範資料，不會改動正式試算表。</p></div>
+        <a class="customer-preview" href="index.html">↗ 開啟客戶前台</a>
+      </aside>
+
+      <main class="ops-main">
+        <header class="ops-topbar">
+          <button class="mobile-menu" data-action="toggle-menu">☰</button>
+          <div><span class="breadcrumb">PMR / 營運控制台</span><h1 id="page-title">今天的營運狀態</h1></div>
+          <div class="operator"><span class="online-dot"></span><div><small>值班客服</small><strong>Mina</strong></div><b>M</b></div>
+        </header>
+
+        <section class="ops-view is-active" id="dashboard-view">
+          <div class="demo-banner"><div><strong>前後台同步展示已開啟</strong><p>在此更新 Yvonne 的訂單，再回到客戶前台重新整理，就會看到付款狀態、剩餘張數與訂單進度同步變更。</p></div><a href="index.html#orders-view">查看客戶畫面 ↗</a></div>
+
+          <div class="kpi-grid">
+            <article><div class="kpi-icon amber">!</div><span>今日待跟進</span><strong id="kpi-followups">0</strong><small>依下一步日期計算</small></article>
+            <article><div class="kpi-icon blue">$</div><span>待確認款項</span><strong id="kpi-payments">0</strong><small>尚未完成款項核對</small></article>
+            <article><div class="kpi-icon green">✓</div><span>補件處理中</span><strong id="kpi-docs">0</strong><small>護照或航班尚未齊全</small></article>
+            <article><div class="kpi-icon violet">✈</div><span>準備出票</span><strong id="kpi-ticketing">0</strong><small>資料已齊、等待開票</small></article>
+          </div>
+
+          <div class="dashboard-grid">
+            <section class="panel pipeline-panel">
+              <div class="panel-head"><div><span>ORDER PIPELINE</span><h2>訂單流程看板</h2></div><button data-go-view="orders">查看全部訂單</button></div>
+              <div class="pipeline" id="pipeline"></div>
+            </section>
+            <section class="panel activity-panel">
+              <div class="panel-head"><div><span>NEXT ACTION</span><h2>優先待辦</h2></div></div>
+              <div id="priority-list" class="priority-list"></div>
+            </section>
+          </div>
+
+          <section class="panel health-panel">
+            <div class="panel-head"><div><span>DATA FLOW</span><h2>整體串接狀態</h2></div><button data-go-view="integrations">查看設定</button></div>
+            <div class="health-grid">
+              <article class="is-ready"><b>01</b><div><strong>客戶預訂前台</strong><span>展示版已完成</span></div><i>✓</i></article>
+              <article class="is-ready"><b>02</b><div><strong>客服營運後台</strong><span>展示版已完成</span></div><i>✓</i></article>
+              <article><b>03</b><div><strong>Google 試算表</strong><span>待建立正式資料表</span></div><i>—</i></article>
+              <article><b>04</b><div><strong>LINE 官方帳號</strong><span>待開啟 Messaging API</span></div><i>—</i></article>
+            </div>
+          </section>
+        </section>
+
+        <section class="ops-view" id="customers-view">
+          <div class="page-actions"><div><p>客戶編號永遠不變；LINE 換綁只更新登入身分，不會讓舊訂單或額度消失。</p></div><button class="primary-action" data-action="new-customer">＋ 建立客戶</button></div>
+          <section class="panel table-panel">
+            <div class="table-tools"><label><span>⌕</span><input id="customer-search" placeholder="搜尋客戶編號、姓名、LINE 或電話" /></label><select id="customer-filter"><option value="all">所有客戶</option><option>正常</option><option>待新帳號驗證</option><option>已封存</option><option>已刪除</option></select></div>
+            <div class="table-wrap"><table><thead><tr><th>客戶</th><th>LINE 帳號</th><th>電話</th><th>訂單／額度</th><th>帳號狀態</th><th>最後綁定</th></tr></thead><tbody id="customers-table"></tbody></table></div>
+          </section>
+          <div class="policy-note"><strong>LINE 換帳號處理方式</strong><p>由新 LINE 帳號登入後完成一次性驗證，再把新 user ID 綁到原客戶編號。舊 LINE ID 留在歷史紀錄並停用，訂單、剩餘額度與付款紀錄不搬動。</p></div>
+        </section>
+
+        <section class="ops-view" id="orders-view">
+          <div class="page-actions"><div><p>以訂單編號串接客戶、付款、額度、補件與利潤。</p></div><button class="primary-action" data-action="new-order">＋ 建立訂單</button></div>
+          <section class="panel table-panel">
+            <div class="table-tools">
+              <label><span>⌕</span><input id="order-search" placeholder="搜尋姓名、LINE、訂單或專案代碼" /></label>
+              <select id="order-filter"><option value="all">所有狀態</option><option>等待客服確認</option><option>等待付款</option><option>資料補件中</option><option>許願航班待補</option><option>準備出票</option><option>已完成</option></select>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>訂單／客戶</th><th>專案</th><th>款項</th><th>額度</th><th>資料／出票</th><th>負責人</th><th>下一步</th></tr></thead>
+                <tbody id="orders-table"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <section class="ops-view" id="projects-view">
+          <div class="page-actions"><div><p>集中管理經濟艙／商務艙售價、成本、效期、庫存與每個專案的特殊規則。</p></div><button class="primary-action" data-action="new-project">＋ 建立私人專案</button></div>
+          <section class="panel table-panel">
+            <div class="project-summary"><strong id="project-count">0</strong><span>個可銷售專案</span><i></i><strong id="project-stock">0</strong><span>組／張剩餘</span></div>
+            <div class="table-wrap"><table><thead><tr><th>代碼／專案</th><th>顯示方式</th><th>經濟售價／成本</th><th>商務售價／成本</th><th>額度</th><th>庫存</th><th>效期</th><th>特殊規則</th></tr></thead><tbody id="projects-table"></tbody></table></div>
+          </section>
+        </section>
+
+        <section class="ops-view" id="reports-view">
+          <div class="page-actions report-actions"><div><p>月報只計入付款狀態為「已確認」的訂單；退款與取消另列，不會覆蓋原交易。</p></div><div class="report-controls"><label>結算月份<input id="report-month" type="month" value="2026-09" /></label><a class="primary-action download-action" href="PMR-2026-09月報.xlsx" download>下載 Excel 月報</a></div></div>
+          <div class="report-kpis" id="report-kpis"></div>
+          <div class="report-grid">
+            <section class="panel report-panel"><div class="panel-head"><div><span>PAYOUTS</span><h2>本月應付明細</h2></div></div><div id="payout-summary" class="payout-summary"></div></section>
+            <section class="panel report-panel"><div class="panel-head"><div><span>PROFIT</span><h2>成本與利潤</h2></div></div><div id="profit-summary" class="profit-summary"></div></section>
+          </div>
+          <section class="panel table-panel report-detail"><div class="panel-head"><div><span>ORDER DETAIL</span><h2>本月訂單明細</h2></div><small id="report-order-count"></small></div><div class="table-wrap"><table><thead><tr><th>訂單／客戶</th><th>實收</th><th>成本</th><th>客服費</th><th>加購毛利</th><th>介紹人分潤</th><th>資源方分潤</th><th>未分配</th></tr></thead><tbody id="report-orders-table"></tbody></table></div></section>
+        </section>
+
+        <section class="ops-view" id="integrations-view">
+          <div class="integration-intro"><span>CONNECTED SALES</span><h2>把流量、對話、訂單與利潤放在同一條資料線上</h2><p>社群負責吸引客人，官方帳號負責辨識與跟進，前台負責預訂與查詢，後台負責客服作業；試算表則保留為資料匯出與財務核對工具。</p></div>
+          <div class="integration-grid">
+            <article class="integration-card"><div class="integration-logo sheets">▦</div><div><small>GOOGLE SHEETS</small><h3>試算表資料庫</h3><p>目前已讀到「表單回覆」與「利潤」兩張表。正式版會改成由訂單編號關聯，避免再用姓名對資料。</p><ul><li>建立專案、訂單、額度、付款、加購、操作紀錄分頁</li><li>舊資料可保留並逐筆補上訂單編號</li><li>需要 Google 帳號授權與正式端點</li></ul></div><span class="state waiting">待設定</span></article>
+            <article class="integration-card"><div class="integration-logo line">LINE</div><div><small>OFFICIAL ACCOUNT</small><h3>LINE 官方帳號</h3><p>客人點選專案後，以 LIFF 開啟預訂頁並帶入 LINE 身分與專案代碼；狀態變更時可由官方帳號提醒補件或出票。</p><ul><li>需要啟用 Messaging API 與 LIFF</li><li>需設定 HTTPS Webhook 與 Channel access token</li><li>對話與訂單以 LINE user ID 關聯</li></ul></div><span class="state waiting">待授權</span></article>
+            <article class="integration-card"><div class="integration-logo community">群</div><div><small>LINE COMMUNITY</small><h3>社群銷售入口</h3><p>社群專注發布每日方案，每則貼文附帶來源代碼連結；客人點擊後進入官方帳號／前台，才能安全追蹤成交與介紹來源。</p><ul><li>一般群組可邀請官方帳號機器人後串接</li><li>若是 OpenChat，不把客戶識別建立在社群內</li><li>每篇方案使用 campaign 來源碼計算成效</li></ul></div><span class="state planned">建議流程</span></article>
+            <article class="integration-card"><div class="integration-logo vault">鎖</div><div><small>PRIVATE FILE STORAGE</small><h3>護照與匯款資料</h3><p>檔案放在私有雲端空間，後台只記錄檔案 ID。客人與客服取得的是短時間有效的上傳或檢視連結，不建立公開分享網址。</p><ul><li>首選 Google Cloud Storage 私有儲存</li><li>小規模試跑可使用 Google Workspace 共用雲端硬碟</li><li>依客服角色限制存取並保留下載紀錄</li></ul></div><span class="state waiting">待選方案</span></article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="drawer-backdrop" id="drawer-backdrop"></div>
+    <aside class="record-drawer" id="order-drawer" aria-hidden="true">
+      <div class="drawer-head"><div><small>ORDER DETAIL</small><h2 id="drawer-order-id">訂單</h2></div><button data-action="close-drawer">×</button></div>
+      <form id="order-form">
+        <div class="drawer-section customer-summary" id="drawer-customer"></div>
+        <div class="drawer-section"><h3>流程狀態</h3><div class="form-grid two"><label>訂單狀態<select name="status"><option>等待客服確認</option><option>等待付款</option><option>資料補件中</option><option>許願航班待補</option><option>準備出票</option><option>已完成</option></select></label><label>負責客服<select name="assignedTo"><option>待分派</option><option>Mina</option><option>Ary</option><option>Scott</option></select></label><label>付款狀態<select name="paymentStatus"><option>待客服確認</option><option>待匯款</option><option>待核對</option><option>已確認</option><option>退款處理中</option><option>已退款</option></select></label><label>補件狀態<select name="docsStatus"><option>尚未補件</option><option>缺護照</option><option>缺 1 份護照</option><option>航班待補</option><option>資料已齊</option></select></label><label>出票狀態<select name="ticketStatus"><option>尚未出票</option><option>待選航班</option><option>準備出票</option><option>已出票</option></select></label><label>下一步日期<input name="nextActionDate" type="date" /></label></div></div>
+        <div class="drawer-section"><h3>額度與款項</h3><div class="form-grid four"><label>購買<input name="purchased" type="number" min="0" /></label><label>處理中<input name="pending" type="number" min="0" /></label><label>已出票<input name="used" type="number" min="0" /></label><label>退款<input name="refunded" type="number" min="0" /></label></div><div class="form-grid two"><label>機票售價<input name="total" type="number" min="0" /></label><label>含加購應收<input name="grandTotal" type="number" min="0" /></label><label>實收金額<input name="paymentAmount" type="number" min="0" /></label><label>機票成本<input name="cost" type="number" min="0" /></label><label>客服費用<input name="serviceFee" type="number" min="0" /></label></div><div id="ticket-selection-summary" class="checkout-summary"></div><div class="profit-preview" id="profit-preview"></div></div>
+        <div class="drawer-section"><h3>分潤與加購</h3><div class="form-grid two"><label>介紹人<input name="introducer" /></label><label>介紹人利潤<input name="introducerProfit" type="number" min="0" /></label><label>資源方利潤<input name="sourceProfit" type="number" min="0" /></label></div><div id="checkout-addons-editor" class="checkout-addons-editor"></div><div class="form-grid two"><label>其他加購項目<input name="addOnName" placeholder="例如：四人房" /></label><label>其他加購售價<input name="addOnPrice" type="number" min="0" /></label><label>其他加購成本<input name="addOnCost" type="number" min="0" /></label></div></div>
+        <div class="drawer-section"><h3>客服內部備註</h3><textarea name="internalNotes" rows="4" placeholder="客戶不可見，可記錄特殊需求、追蹤結果與注意事項"></textarea></div>
+        <div class="drawer-section"><h3>最近紀錄</h3><div class="activity-feed" id="drawer-activity"></div></div>
+        <div class="drawer-actions"><button type="button" class="secondary" data-action="close-drawer">取消</button><button type="submit" class="primary-action">儲存並同步前台</button></div>
+      </form>
+    </aside>
+
+    <aside class="record-drawer" id="customer-drawer" aria-hidden="true">
+      <div class="drawer-head"><div><small>CUSTOMER DETAIL</small><h2 id="drawer-customer-id">客戶資料</h2></div><button data-action="close-customer-drawer">×</button></div>
+      <form id="customer-form">
+        <div class="drawer-section"><h3>基本資料</h3><div class="form-grid two"><label>真實姓名<input name="realName" /></label><label>電話<input name="phone" /></label><label>LINE 顯示名稱<input name="displayName" /></label><label>客戶狀態<select name="status"><option>正常</option><option>待新帳號驗證</option><option>已封存</option><option>已刪除</option></select></label></div></div>
+        <div class="drawer-section"><h3>LINE 登入綁定</h3><label>目前 LINE user ID<input name="lineUserId" /></label><div class="link-warning">更改後會標示「待新帳號驗證」。正式版須由客人使用新 LINE 登入並完成一次性驗證，客服不可跳過驗證直接換綁。</div><div id="previous-line-ids" class="previous-ids"></div></div>
+        <div class="drawer-section"><h3>客服內部備註</h3><textarea name="note" rows="4"></textarea></div>
+        <div class="drawer-section danger-zone"><h3>資料處理</h3><p>封存會停止新交易但保留客戶資料。刪除個資會匿名化姓名、電話與 LINE，財務與稽核紀錄仍依訂單編號保留。</p><div><button type="button" data-action="archive-customer">封存客戶</button><button type="button" data-action="anonymize-customer">刪除個資</button></div></div>
+        <div class="drawer-actions"><button type="button" class="secondary" data-action="close-customer-drawer">取消</button><button type="submit" class="primary-action">儲存客戶資料</button></div>
+      </form>
+    </aside>
+
+    <div class="toast" id="admin-toast"></div>
+    <script src="shared-data.js"></script>
+    <script src="admin.js"></script>
+  </body>
+</html>

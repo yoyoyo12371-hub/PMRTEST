@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#123f3b" />
+    <title>PMR 旅遊預訂中心</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+
+    <main class="app-shell">
+      <header class="topbar">
+        <button class="brand" data-view-target="discover" aria-label="返回首頁">
+          <span class="brand-mark">P</span>
+          <span>
+            <strong>PMR</strong>
+            <small>TRAVEL CLUB</small>
+          </span>
+        </button>
+        <div class="topbar-actions">
+          <a class="staff-console-link" href="admin.html"><span>展示版</span> 客服後台</a>
+          <button class="profile-chip" type="button" data-action="profile">
+            <span class="line-dot"></span>
+            <span class="profile-copy"><small>已使用 LINE 登入</small><strong>Yvonne</strong></span>
+            <span class="avatar">Y</span>
+          </button>
+        </div>
+      </header>
+
+      <section id="discover-view" class="view is-active" aria-labelledby="discover-title">
+        <div class="hero-card">
+          <div class="hero-copy">
+            <span class="eyebrow">PMR MEMBER EXCLUSIVE</span>
+            <h1 id="discover-title">把世界，留給<br /><em>想出發的那一天</em></h1>
+            <p>先收藏旅程額度，日期與目的地之後再決定。</p>
+            <div class="hero-actions">
+              <button class="primary-btn" data-action="scroll-projects">查看本期專案</button>
+              <button class="ghost-btn" data-view-target="orders">我的剩餘額度</button>
+            </div>
+          </div>
+          <div class="hero-visual" aria-hidden="true">
+            <div class="flight-path"></div>
+            <span class="hero-plane">✈</span>
+            <div class="destination-badge badge-one"><span>JP</span><b>東京</b></div>
+            <div class="destination-badge badge-two"><span>EU</span><b>歐洲</b></div>
+            <div class="destination-badge badge-three"><span>NZ</span><b>紐西蘭</b></div>
+          </div>
+        </div>
+
+        <div class="trust-strip" aria-label="方案特色">
+          <span><b>✓</b> 付款後額度生效</span>
+          <span><b>✓</b> 每案條件清楚標示</span>
+          <span><b>✓</b> 資料可分次補齊</span>
+          <span><b>✓</b> 專人協助</span>
+        </div>
+
+        <section class="code-lookup" aria-labelledby="code-lookup-title">
+          <div class="code-lookup-copy">
+            <span class="eyebrow">PROJECT CODE</span>
+            <h2 id="code-lookup-title">已經有專案代碼？</h2>
+            <p>最近五天或客服提供的私人方案，不必在首頁慢慢找，輸入代碼就能直接預訂。</p>
+          </div>
+          <form id="project-code-form" class="code-form">
+            <label for="project-code-input">專案代碼</label>
+            <div><input id="project-code-input" autocomplete="off" maxlength="5" placeholder="例如 0909A" /><button type="button" data-action="lookup-project">查詢專案</button></div>
+            <small>最近五日：</small>
+            <div class="recent-codes" aria-label="最近五日專案">
+              <button type="button" data-code-example="0913A">0913A</button>
+              <button type="button" data-code-example="0912B">0912B</button>
+              <button type="button" data-code-example="0911C">0911C</button>
+              <button type="button" data-code-example="0910A">0910A</button>
+              <button type="button" data-code-example="0909A">0909A</button>
+            </div>
+          </form>
+          <div id="code-result" class="code-result" aria-live="polite"></div>
+        </section>
+
+        <section class="projects-section" id="projects-section">
+          <div class="section-heading">
+            <div>
+              <span class="eyebrow dark">CURATED FOR YOU</span>
+              <h2>本期精選專案</h2>
+            </div>
+            <span class="project-count">3 個方案</span>
+          </div>
+
+          <div class="filter-row" role="group" aria-label="專案篩選">
+            <button class="filter-chip is-active" data-filter="all">全部</button>
+            <button class="filter-chip" data-filter="short">亞洲短線</button>
+            <button class="filter-chip" data-filter="europe">歐洲</button>
+            <button class="filter-chip" data-filter="longhaul">長程</button>
+          </div>
+
+          <div id="project-grid" class="project-grid"></div>
+        </section>
+
+        <section class="how-it-works">
+          <div class="section-heading compact">
+            <div>
+              <span class="eyebrow dark">SIMPLE & FLEXIBLE</span>
+              <h2>三步完成預訂</h2>
+            </div>
+          </div>
+          <div class="steps-grid">
+            <article><span>01</span><div><h3>選擇方案與數量</h3><p>先取得旅遊額度，不需立刻決定旅客與日期。</p></div></article>
+            <article><span>02</span><div><h3>完成付款</h3><p>客服提供專屬匯款資訊，核對後額度立即生效。</p></div></article>
+            <article><span>03</span><div><h3>想出發時再補件</h3><p>分次提交旅客護照、日期與三組許願航班。</p></div></article>
+          </div>
+        </section>
+      </section>
+
+      <section id="orders-view" class="view" aria-labelledby="orders-title">
+        <div class="page-intro">
+          <span class="eyebrow dark">MY JOURNEYS</span>
+          <h1 id="orders-title">我的訂單</h1>
+          <p>所有方案額度、補件與出票進度，都整理在這裡。</p>
+        </div>
+
+        <div class="account-summary">
+          <div><small>可使用額度</small><strong id="summary-available">5</strong><span>張</span></div>
+          <div><small>待匯款保留（1 天）</small><strong id="summary-reserved">0</strong><span>張</span></div>
+          <div><small>處理中</small><strong id="summary-pending">1</strong><span>張</span></div>
+          <div><small>已出票</small><strong id="summary-used">2</strong><span>張</span></div>
+        </div>
+
+        <div class="order-tabs" role="tablist">
+          <button class="is-active" data-order-filter="active">進行中</button>
+          <button data-order-filter="completed">已完成</button>
+          <button data-order-filter="all">全部訂單</button>
+        </div>
+
+        <div id="orders-list" class="orders-list"></div>
+      </section>
+
+      <section id="service-view" class="view" aria-labelledby="service-title">
+        <div class="page-intro">
+          <span class="eyebrow dark">HELP CENTER</span>
+          <h1 id="service-title">常見問題</h1>
+          <p>關於價格、航班、出票與付款，答案都整理在這裡。</p>
+        </div>
+
+        <div class="faq-tools">
+          <label class="faq-search" for="faq-search"><span>⌕</span><input id="faq-search" placeholder="搜尋問題，例如：護照、退款、行李" /></label>
+          <div class="faq-filters" role="group" aria-label="問答分類">
+            <button class="is-active" data-faq-filter="all">全部</button>
+            <button data-faq-filter="price">價格票務</button>
+            <button data-faq-filter="flight">航班航空</button>
+            <button data-faq-filter="service">行李服務</button>
+            <button data-faq-filter="ticketing">出票報到</button>
+            <button data-faq-filter="change">改期取消</button>
+            <button data-faq-filter="trust">來源護照</button>
+            <button data-faq-filter="payment">付款下單</button>
+          </div>
+        </div>
+
+        <div id="faq-list" class="faq-list"></div>
+
+        <div class="service-card compact-service">
+          <div class="service-icon">✦</div>
+          <div><h2>還找不到答案嗎？</h2><p>PMR 專屬小幫手可以接續處理您的問題與訂單。</p></div>
+          <button class="primary-btn" data-action="contact">開啟 LINE 諮詢</button>
+        </div>
+      </section>
+
+      <nav class="bottom-nav" aria-label="主要選單">
+        <button class="is-active" data-view-target="discover"><span class="nav-icon">⌂</span><small>探索專案</small></button>
+        <button data-view-target="orders"><span class="nav-icon">▤</span><small>我的訂單</small><i id="order-badge">1</i></button>
+        <button data-view-target="service"><span class="nav-icon">◌</span><small>專屬客服</small></button>
+      </nav>
+    </main>
+
+    <div class="modal-backdrop" id="booking-modal" aria-hidden="true">
+      <section class="bottom-sheet booking-sheet" role="dialog" aria-modal="true" aria-labelledby="booking-title">
+        <div class="sheet-handle"></div>
+        <button class="close-btn" data-close-modal="booking-modal" aria-label="關閉">×</button>
+        <div class="booking-progress"><span class="is-active"></span><span></span><span></span></div>
+
+        <div class="booking-step is-active" data-booking-step="1">
+          <span class="eyebrow dark">STEP 1 OF 3</span>
+          <h2 id="booking-title">確認預訂方案</h2>
+          <div id="booking-project-summary" class="booking-project-summary"></div>
+          <label class="field-label">購買數量</label>
+          <div class="quantity-row">
+            <button type="button" data-quantity="minus">−</button>
+            <div><strong id="booking-quantity">1</strong><span id="booking-unit-label">組</span></div>
+            <button type="button" data-quantity="plus">＋</button>
+          </div>
+          <section class="ticket-upgrade-section" aria-labelledby="ticket-upgrade-title">
+            <div class="upgrade-section-head">
+              <div><small>PER-TICKET OPTIONS</small><h3 id="ticket-upgrade-title">每張票分開選擇</h3></div>
+              <div class="ticket-presets"><button type="button" data-ticket-preset="economy">全部經濟艙</button><button type="button" data-ticket-preset="business">全部商務艙</button></div>
+            </div>
+            <p class="upgrade-helper">同一筆訂單中，可以只有特定幾張升級商務艙或指定星宇航空。</p>
+            <div id="booking-ticket-list" class="booking-ticket-list"></div>
+          </section>
+
+          <section class="airport-transfer-section" aria-labelledby="airport-transfer-title">
+            <div><small>OPTIONAL TRANSFER</small><h3 id="airport-transfer-title">加購機場接送</h3></div>
+            <div class="transfer-options">
+              <label><input type="radio" name="airport-transfer" value="none" checked /><span><b>不需要</b><small>$0</small></span></label>
+              <label><input type="radio" name="airport-transfer" value="oneWay" /><span><b>單趟接送</b><small>$1,800</small></span></label>
+              <label><input type="radio" name="airport-transfer" value="roundTrip" /><span><b>來回接送</b><small>$3,600</small></span></label>
+            </div>
+          </section>
+
+          <section class="coupon-section" aria-labelledby="coupon-title">
+            <div><small>PROMO CODE</small><h3 id="coupon-title">使用優惠代碼</h3></div>
+            <div class="coupon-entry"><input id="coupon-code" maxlength="24" autocomplete="off" placeholder="輸入優惠代碼" /><button type="button" data-action="apply-coupon">套用</button></div>
+            <p id="coupon-feedback">可減免機場接送或套用指定折扣；每筆訂單限用一組。</p>
+          </section>
+
+          <div class="booking-price-breakdown">
+            <div><span>機票小計</span><strong id="booking-ticket-subtotal">$0</strong></div>
+            <div><span>指定星宇</span><strong id="booking-starlux-total">$0</strong></div>
+            <div><span>機場接送</span><strong id="booking-transfer-total">$0</strong></div>
+            <div id="booking-discount-row" hidden><span>優惠折抵</span><strong id="booking-discount-total">-$0</strong></div>
+          </div>
+          <div class="price-total"><span>本次預訂總額（含加購）</span><strong id="booking-total">$0</strong></div>
+          <button class="primary-btn wide" data-booking-next="2">填寫基本資料</button>
+          <p class="helper-text">旅客姓名、護照與航班可以在付款後再慢慢補齊。</p>
+        </div>
+
+        <form class="booking-step" data-booking-step="2" id="booking-form">
+          <span class="eyebrow dark">STEP 2 OF 3</span>
+          <h2>留下基本聯絡資料</h2>
+          <div class="input-group"><label for="customer-name">訂購人姓名</label><input id="customer-name" name="name" required placeholder="請輸入真實姓名" /></div>
+          <div class="input-group"><label for="customer-phone">聯絡電話</label><input id="customer-phone" name="phone" required inputmode="tel" placeholder="09XX-XXX-XXX" /></div>
+          <div class="input-group"><label for="referrer">介紹人</label><select id="referrer" name="referrer" required><option value="" selected disabled>請選擇介紹人</option><option>楊翰</option><option>傑評</option><option>軟糖</option></select></div>
+          <div class="input-group"><label for="customer-note">想先告訴客服的事 <small>選填</small></label><textarea id="customer-note" name="note" rows="3" placeholder="例如：預計明年春天出發、可能需要四人房"></textarea></div>
+          <label class="consent"><input type="checkbox" required /><span>我已閱讀並同意個人資料蒐集告知事項</span></label>
+          <div class="dual-actions"><button class="ghost-btn" type="button" data-booking-next="1">上一步</button><button class="primary-btn" type="submit">建立訂單</button></div>
+        </form>
+
+        <div class="booking-step success-step" data-booking-step="3">
+          <div class="success-icon">✓</div>
+          <span class="eyebrow dark">RESERVATION CREATED</span>
+          <h2>預訂資料已建立</h2>
+          <p>訂單編號 <strong id="success-order-id">PMR-000000</strong></p>
+          <div class="success-note"><strong id="success-reserved">專案已保留 0 張，保留 1 天</strong><span id="success-payment-account">介紹人收款帳戶由客服確認後顯示。</span><br />匯款核對完成前不會產生可用額度。護照與航班資料可稍後從「我的訂單」補上。</div>
+          <button class="primary-btn wide" data-action="go-orders">查看我的訂單</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="modal-backdrop" id="redeem-modal" aria-hidden="true">
+      <section class="bottom-sheet" role="dialog" aria-modal="true" aria-labelledby="redeem-title">
+        <div class="sheet-handle"></div>
+        <button class="close-btn" data-close-modal="redeem-modal" aria-label="關閉">×</button>
+        <span class="eyebrow dark">USE YOUR CREDITS</span>
+        <h2 id="redeem-title">我要使用旅遊額度</h2>
+        <p class="sheet-subtitle">先保留額度即可，護照與航班稍後補上也沒問題。</p>
+        <div class="redeem-balance"><span>目前可使用</span><strong><b id="redeem-available">5</b> 張</strong></div>
+        <label class="field-label">本次使用張數</label>
+        <div class="quantity-row compact-quantity">
+          <button type="button" data-redeem-quantity="minus">−</button>
+          <div><strong id="redeem-quantity">1</strong><span>張</span></div>
+          <button type="button" data-redeem-quantity="plus">＋</button>
+        </div>
+        <div class="input-group"><label for="travel-month">預計出發時間 <small>選填</small></label><input id="travel-month" type="month" /></div>
+        <div class="input-group"><label for="travel-wish">想去的地點或需求 <small>選填</small></label><textarea id="travel-wish" rows="3" placeholder="例如：想去東京，兩位同行，需要安排四人房"></textarea></div>
+        <button class="primary-btn wide" data-action="submit-redemption">建立兌換申請</button>
+      </section>
+    </div>
+
+    <div class="modal-backdrop" id="supplement-modal" aria-hidden="true">
+      <section class="bottom-sheet" role="dialog" aria-modal="true" aria-labelledby="supplement-title">
+        <div class="sheet-handle"></div>
+        <button class="close-btn" data-close-modal="supplement-modal" aria-label="關閉">×</button>
+        <span class="eyebrow dark">COMPLETE LATER</span>
+        <h2 id="supplement-title">補齊旅客資料</h2>
+        <p class="sheet-subtitle">您可以分次儲存，資料不需要一次全部準備好。</p>
+        <div class="upload-grid">
+          <label class="upload-card"><input type="file" accept="image/*" multiple /><span>▧</span><strong>護照照片</strong><small>每位旅客一張</small></label>
+          <label class="upload-card"><input type="file" accept="image/*" multiple /><span>✈</span><strong>許願航班</strong><small>最多三組截圖</small></label>
+          <label class="upload-card"><input type="file" accept="image/*" /><span>▤</span><strong>匯款明細</strong><small>可稍後補上</small></label>
+        </div>
+        <div id="selected-files" class="selected-files">尚未選擇檔案</div>
+        <button class="primary-btn wide" data-action="save-files">儲存補件進度</button>
+      </section>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="shared-data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
