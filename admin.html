@@ -31,17 +31,17 @@
         <header class="ops-topbar">
           <button class="mobile-menu" data-action="toggle-menu">☰</button>
           <div><span class="breadcrumb">PMR / 營運控制台</span><h1 id="page-title">今天的營運狀態</h1></div>
-          <div class="operator"><span class="online-dot"></span><div><small>值班客服</small><strong>Mina</strong></div><b>M</b></div>
+          <div class="operator"><span class="online-dot"></span><div><small>負責客服</small><strong>ASH</strong></div><b>A</b></div>
         </header>
 
         <section class="ops-view is-active" id="dashboard-view">
-          <div class="demo-banner"><div><strong>前後台同步展示已開啟</strong><p>在此更新 Yvonne 的訂單，再回到客戶前台重新整理，就會看到付款狀態、剩餘張數與訂單進度同步變更。</p></div><a href="index.html#orders-view">查看客戶畫面 ↗</a></div>
+          <div class="demo-banner"><div><strong>真實表單資料已匯入展示版</strong><p>目前共 13 筆訂單、9 位客戶。未確認的成本、附件與資料差異會保留警示，不會自動猜測。</p></div><a href="index.html#orders-view">查看客戶畫面 ↗</a></div>
 
           <div class="kpi-grid">
-            <article><div class="kpi-icon amber">!</div><span>今日待跟進</span><strong id="kpi-followups">0</strong><small>依下一步日期計算</small></article>
-            <article><div class="kpi-icon blue">$</div><span>待確認款項</span><strong id="kpi-payments">0</strong><small>尚未完成款項核對</small></article>
-            <article><div class="kpi-icon green">✓</div><span>補件處理中</span><strong id="kpi-docs">0</strong><small>護照或航班尚未齊全</small></article>
-            <article><div class="kpi-icon violet">✈</div><span>準備出票</span><strong id="kpi-ticketing">0</strong><small>資料已齊、等待開票</small></article>
+            <article><div class="kpi-icon amber">!</div><span>今日待跟進</span><strong id="kpi-followups">0</strong><small>依客服追蹤日期計算</small></article>
+            <article><div class="kpi-icon blue">$</div><span>購買額度待處理</span><strong id="kpi-payments">0</strong><small>帳號、匯款或核帳尚未完成</small></article>
+            <article><div class="kpi-icon green">✓</div><span>使用額度待補件</span><strong id="kpi-docs">0</strong><small>明確顯示缺護照或缺航班</small></article>
+            <article><div class="kpi-icon violet">✈</div><span>資料已齊待處理</span><strong id="kpi-ticketing">0</strong><small>出票為明細，不另設主要看板欄</small></article>
           </div>
 
           <div class="dashboard-grid">
@@ -80,11 +80,11 @@
           <section class="panel table-panel">
             <div class="table-tools">
               <label><span>⌕</span><input id="order-search" placeholder="搜尋姓名、LINE、訂單或專案代碼" /></label>
-              <select id="order-filter"><option value="all">所有狀態</option><option>等待客服確認</option><option>等待付款</option><option>資料補件中</option><option>許願航班待補</option><option>準備出票</option><option>已完成</option></select>
+              <select id="order-filter"><option value="all">所有狀態</option><option>待提供匯款帳號</option><option>待客戶匯款</option><option>待核對匯款</option><option>額度已生效／尚未使用</option><option>待補護照與航班</option><option>資料已齊／待客服處理</option><option>已完成</option></select>
             </div>
             <div class="table-wrap">
               <table>
-                <thead><tr><th>訂單／客戶</th><th>專案</th><th>款項</th><th>額度</th><th>資料／出票</th><th>負責人</th><th>下一步</th></tr></thead>
+                <thead><tr><th>訂單／客戶</th><th>專案</th><th>購買額度</th><th>可用額度</th><th>使用額度／缺件</th><th>負責客服</th><th>客服追蹤</th></tr></thead>
                 <tbody id="orders-table"></tbody>
               </table>
             </div>
@@ -92,10 +92,10 @@
         </section>
 
         <section class="ops-view" id="projects-view">
-          <div class="page-actions"><div><p>集中管理售價、單張成本、效期、庫存與每個專案的特殊規則。</p></div><button class="primary-action" data-action="new-project">＋ 建立私人專案</button></div>
+          <div class="page-actions"><div><p>集中管理經濟艙／商務艙售價、成本、效期、庫存與每個專案的特殊規則。</p></div><button class="primary-action" data-action="new-project">＋ 建立私人專案</button></div>
           <section class="panel table-panel">
             <div class="project-summary"><strong id="project-count">0</strong><span>個可銷售專案</span><i></i><strong id="project-stock">0</strong><span>組／張剩餘</span></div>
-            <div class="table-wrap"><table><thead><tr><th>代碼／專案</th><th>顯示方式</th><th>售價／成本</th><th>額度</th><th>庫存</th><th>效期</th><th>特殊規則</th></tr></thead><tbody id="projects-table"></tbody></table></div>
+            <div class="table-wrap"><table><thead><tr><th>代碼／專案名稱</th><th>目的地／航線</th><th>顯示方式</th><th>經濟售價／成本</th><th>商務售價／成本</th><th>額度</th><th>效期</th><th>特殊規則</th></tr></thead><tbody id="projects-table"></tbody></table></div>
           </section>
         </section>
 
@@ -106,7 +106,8 @@
             <section class="panel report-panel"><div class="panel-head"><div><span>PAYOUTS</span><h2>本月應付明細</h2></div></div><div id="payout-summary" class="payout-summary"></div></section>
             <section class="panel report-panel"><div class="panel-head"><div><span>PROFIT</span><h2>成本與利潤</h2></div></div><div id="profit-summary" class="profit-summary"></div></section>
           </div>
-          <section class="panel table-panel report-detail"><div class="panel-head"><div><span>ORDER DETAIL</span><h2>本月訂單明細</h2></div><small id="report-order-count"></small></div><div class="table-wrap"><table><thead><tr><th>訂單／客戶</th><th>實收</th><th>成本</th><th>客服費</th><th>加購毛利</th><th>介紹人分潤</th><th>資源方分潤</th><th>未分配</th></tr></thead><tbody id="report-orders-table"></tbody></table></div></section>
+          <section class="panel table-panel settlement-panel"><div class="panel-head"><div><span>PAYMENT ACCOUNT LEDGER</span><h2>逐筆收款帳號月結</h2></div><small>每筆訂單保留當時實際收款帳號</small></div><div class="table-wrap"><table><thead><tr><th>訂單／客戶</th><th>介紹人</th><th>實際收款帳戶</th><th>代收金額</th><th>應付成本</th><th>應付客服</th><th>應付資源方</th><th>介紹人分潤</th></tr></thead><tbody id="introducer-settlements"></tbody></table></div></section>
+          <section class="panel table-panel report-detail"><div class="panel-head"><div><span>ORDER DETAIL</span><h2>本月訂單明細</h2></div><small id="report-order-count"></small></div><div class="table-wrap"><table><thead><tr><th>訂單／客戶</th><th>實收／優惠碼</th><th>成本</th><th>客服費</th><th>加購毛利</th><th>介紹人分潤</th><th>資源方分潤</th><th>未分配</th></tr></thead><tbody id="report-orders-table"></tbody></table></div></section>
         </section>
 
         <section class="ops-view" id="integrations-view">
@@ -126,9 +127,10 @@
       <div class="drawer-head"><div><small>ORDER DETAIL</small><h2 id="drawer-order-id">訂單</h2></div><button data-action="close-drawer">×</button></div>
       <form id="order-form">
         <div class="drawer-section customer-summary" id="drawer-customer"></div>
-        <div class="drawer-section"><h3>流程狀態</h3><div class="form-grid two"><label>訂單狀態<select name="status"><option>等待客服確認</option><option>等待付款</option><option>資料補件中</option><option>許願航班待補</option><option>準備出票</option><option>已完成</option></select></label><label>負責客服<select name="assignedTo"><option>待分派</option><option>Mina</option><option>Ary</option><option>Scott</option></select></label><label>付款狀態<select name="paymentStatus"><option>待客服確認</option><option>待匯款</option><option>待核對</option><option>已確認</option><option>退款處理中</option><option>已退款</option></select></label><label>補件狀態<select name="docsStatus"><option>尚未補件</option><option>缺護照</option><option>缺 1 份護照</option><option>航班待補</option><option>資料已齊</option></select></label><label>出票狀態<select name="ticketStatus"><option>尚未出票</option><option>待選航班</option><option>準備出票</option><option>已出票</option></select></label><label>下一步日期<input name="nextActionDate" type="date" /></label></div></div>
-        <div class="drawer-section"><h3>額度與款項</h3><div class="form-grid four"><label>購買<input name="purchased" type="number" min="0" /></label><label>處理中<input name="pending" type="number" min="0" /></label><label>已出票<input name="used" type="number" min="0" /></label><label>退款<input name="refunded" type="number" min="0" /></label></div><div class="form-grid two"><label>訂單售價<input name="total" type="number" min="0" /></label><label>實收金額<input name="paymentAmount" type="number" min="0" /></label><label>方案成本<input name="cost" type="number" min="0" /></label><label>客服費用<input name="serviceFee" type="number" min="0" /></label></div><div class="profit-preview" id="profit-preview"></div></div>
-        <div class="drawer-section"><h3>分潤與加購</h3><div class="form-grid two"><label>介紹人<input name="introducer" /></label><label>介紹人利潤<input name="introducerProfit" type="number" min="0" /></label><label>資源方利潤<input name="sourceProfit" type="number" min="0" /></label><label>加購項目<input name="addOnName" placeholder="例如：機場接送" /></label><label>加購售價<input name="addOnPrice" type="number" min="0" /></label><label>加購成本<input name="addOnCost" type="number" min="0" /></label></div></div>
+        <div class="drawer-section"><h3>兩階段流程</h3><div class="stage-explainer"><b>第一階段｜購買額度</b><span>提供帳號 → 客戶匯款 → 客服核帳 → 額度生效</span><b>第二階段｜使用額度</b><span>客戶申請使用 → 補護照／航班 → 處理出票 → 完成</span></div><div class="form-grid two"><label>營運狀態<select name="status"><option>待提供匯款帳號</option><option>待客戶匯款</option><option>待核對匯款</option><option>額度已生效／尚未使用</option><option>待補護照與航班</option><option>待補護照</option><option>待補航班</option><option>資料已齊／待客服處理</option><option>資料待核對</option><option>已完成</option><option>已取消</option></select></label><label>負責客服<select name="assignedTo"><option>ASH</option></select></label><label>付款狀態<select name="paymentStatus"><option>待提供匯款帳號</option><option>待客戶匯款</option><option>待核對匯款</option><option>已確認</option><option>退款處理中</option><option>已退款</option></select></label><label>缺件狀態<select name="docsStatus"><option>尚未申請使用</option><option>缺護照</option><option>缺航班</option><option>缺護照與航班</option><option>資料已齊</option><option>資料待逐組核對</option></select></label><label>出票明細<select name="ticketStatus"><option>尚未出票</option><option>處理中</option><option>已出票</option><option>不適用</option></select></label><label>客服追蹤日期<input name="nextActionDate" type="date" /><small class="source-note">不是出發日期；用於提醒 ASH 何時跟進</small></label><label>出發日期<input name="departureDate" type="date" /></label><label>回程日期<input name="returnDate" type="date" /></label></div></div>
+        <div class="drawer-section"><h3>額度與款項</h3><div class="credit-policy">匯款核對完成前，下單張數只列為「待匯款保留」，不會產生可使用額度。</div><div class="form-grid four"><label>購買／保留<input name="purchased" type="number" min="0" /></label><label>處理中<input name="pending" type="number" min="0" /></label><label>已出票<input name="used" type="number" min="0" /></label><label>退款<input name="refunded" type="number" min="0" /></label></div><div class="form-grid two"><label>保留截止<input name="reservationExpiresAt" type="datetime-local" /></label><label>機票售價<input name="total" type="number" min="0" /></label><label>含加購應收<input name="grandTotal" type="number" min="0" /></label><label>實收金額<input name="paymentAmount" type="number" min="0" /></label><label>機票成本<input name="cost" type="number" min="0" /></label><label>客服費用<input name="serviceFee" type="number" min="0" /></label></div><div id="ticket-selection-summary" class="checkout-summary"></div><div class="profit-preview" id="profit-preview"></div></div>
+        <div class="drawer-section"><h3>介紹人與本訂單收款帳戶</h3><div class="credit-policy">這是該筆訂單當時提供給客人的帳號，不會因介紹人的預設帳號日後變更而被覆蓋。</div><div class="form-grid two"><label>介紹人<select name="introducer"><option value="">未指定</option><option>楊翰</option><option>傑評</option><option>軟糖</option></select></label><label>收款銀行<input name="paymentBank" placeholder="例如：中國信託" /></label><label>戶名<input name="paymentOwner" /></label><label>完整收款帳號<input name="paymentAccountNumber" placeholder="請由客服設定" /></label></div></div>
+        <div class="drawer-section"><h3>優惠代碼、分潤與加購</h3><div class="form-grid two"><label>優惠代碼<input name="couponCode" /></label><label>優惠內容<input name="couponDescription" placeholder="例如：機場接送免費" /></label><label>優惠折抵<input name="discountAmount" type="number" min="0" /></label><label>介紹人利潤<input name="introducerProfit" type="number" min="0" /></label><label>資源方利潤<input name="sourceProfit" type="number" min="0" /></label></div><div id="checkout-addons-editor" class="checkout-addons-editor"></div><div class="form-grid two"><label>其他加購項目<input name="addOnName" placeholder="例如：四人房" /></label><label>其他加購售價<input name="addOnPrice" type="number" min="0" /></label><label>其他加購成本<input name="addOnCost" type="number" min="0" /></label></div></div>
         <div class="drawer-section"><h3>客服內部備註</h3><textarea name="internalNotes" rows="4" placeholder="客戶不可見，可記錄特殊需求、追蹤結果與注意事項"></textarea></div>
         <div class="drawer-section"><h3>最近紀錄</h3><div class="activity-feed" id="drawer-activity"></div></div>
         <div class="drawer-actions"><button type="button" class="secondary" data-action="close-drawer">取消</button><button type="submit" class="primary-action">儲存並同步前台</button></div>
@@ -139,7 +141,7 @@
       <div class="drawer-head"><div><small>CUSTOMER DETAIL</small><h2 id="drawer-customer-id">客戶資料</h2></div><button data-action="close-customer-drawer">×</button></div>
       <form id="customer-form">
         <div class="drawer-section"><h3>基本資料</h3><div class="form-grid two"><label>真實姓名<input name="realName" /></label><label>電話<input name="phone" /></label><label>LINE 顯示名稱<input name="displayName" /></label><label>客戶狀態<select name="status"><option>正常</option><option>待新帳號驗證</option><option>已封存</option><option>已刪除</option></select></label></div></div>
-        <div class="drawer-section"><h3>LINE 登入綁定</h3><label>目前 LINE user ID<input name="lineUserId" /></label><div class="link-warning">更改後會標示「待新帳號驗證」。正式版須由客人使用新 LINE 登入並完成一次性驗證，客服不可跳過驗證直接換綁。</div><div id="previous-line-ids" class="previous-ids"></div></div>
+        <div class="drawer-section"><h3>LINE 帳號人工換綁</h3><label>目前 LINE user ID<input name="lineUserId" placeholder="由官方帳號取得的 user ID" /></label><div class="link-warning">客戶編號不變。客服可輸入新 LINE user ID，但儲存後先標示「待新帳號驗證」；舊 ID 會保留在歷史紀錄，驗證成功後再改為正常。</div><div id="previous-line-ids" class="previous-ids"></div></div>
         <div class="drawer-section"><h3>客服內部備註</h3><textarea name="note" rows="4"></textarea></div>
         <div class="drawer-section danger-zone"><h3>資料處理</h3><p>封存會停止新交易但保留客戶資料。刪除個資會匿名化姓名、電話與 LINE，財務與稽核紀錄仍依訂單編號保留。</p><div><button type="button" data-action="archive-customer">封存客戶</button><button type="button" data-action="anonymize-customer">刪除個資</button></div></div>
         <div class="drawer-actions"><button type="button" class="secondary" data-action="close-customer-drawer">取消</button><button type="submit" class="primary-action">儲存客戶資料</button></div>

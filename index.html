@@ -124,6 +124,7 @@
 
         <div class="account-summary">
           <div><small>可使用額度</small><strong id="summary-available">5</strong><span>張</span></div>
+          <div><small>待匯款保留（1 天）</small><strong id="summary-reserved">0</strong><span>張</span></div>
           <div><small>處理中</small><strong id="summary-pending">1</strong><span>張</span></div>
           <div><small>已出票</small><strong id="summary-used">2</strong><span>張</span></div>
         </div>
@@ -190,7 +191,37 @@
             <div><strong id="booking-quantity">1</strong><span id="booking-unit-label">組</span></div>
             <button type="button" data-quantity="plus">＋</button>
           </div>
-          <div class="price-total"><span>本次預訂總額</span><strong id="booking-total">$0</strong></div>
+          <section class="ticket-upgrade-section" aria-labelledby="ticket-upgrade-title">
+            <div class="upgrade-section-head">
+              <div><small>PER-TICKET OPTIONS</small><h3 id="ticket-upgrade-title">每張票分開選擇</h3></div>
+              <div class="ticket-presets"><button type="button" data-ticket-preset="economy">全部經濟艙</button><button type="button" data-ticket-preset="business">全部商務艙</button></div>
+            </div>
+            <p class="upgrade-helper">同一筆訂單中，可以只有特定幾張升級商務艙或指定星宇航空。</p>
+            <div id="booking-ticket-list" class="booking-ticket-list"></div>
+          </section>
+
+          <section class="airport-transfer-section" aria-labelledby="airport-transfer-title">
+            <div><small>OPTIONAL TRANSFER</small><h3 id="airport-transfer-title">加購機場接送</h3></div>
+            <div class="transfer-options">
+              <label><input type="radio" name="airport-transfer" value="none" checked /><span><b>不需要</b><small>$0</small></span></label>
+              <label><input type="radio" name="airport-transfer" value="oneWay" /><span><b>單趟接送</b><small>$1,800</small></span></label>
+              <label><input type="radio" name="airport-transfer" value="roundTrip" /><span><b>來回接送</b><small>$3,600</small></span></label>
+            </div>
+          </section>
+
+          <section class="coupon-section" aria-labelledby="coupon-title">
+            <div><small>PROMO CODE</small><h3 id="coupon-title">使用優惠代碼</h3></div>
+            <div class="coupon-entry"><input id="coupon-code" maxlength="24" autocomplete="off" placeholder="輸入優惠代碼" /><button type="button" data-action="apply-coupon">套用</button></div>
+            <p id="coupon-feedback">可減免機場接送或套用指定折扣；每筆訂單限用一組。</p>
+          </section>
+
+          <div class="booking-price-breakdown">
+            <div><span>機票小計</span><strong id="booking-ticket-subtotal">$0</strong></div>
+            <div><span>指定星宇</span><strong id="booking-starlux-total">$0</strong></div>
+            <div><span>機場接送</span><strong id="booking-transfer-total">$0</strong></div>
+            <div id="booking-discount-row" hidden><span>優惠折抵</span><strong id="booking-discount-total">-$0</strong></div>
+          </div>
+          <div class="price-total"><span>本次預訂總額（含加購）</span><strong id="booking-total">$0</strong></div>
           <button class="primary-btn wide" data-booking-next="2">填寫基本資料</button>
           <p class="helper-text">旅客姓名、護照與航班可以在付款後再慢慢補齊。</p>
         </div>
@@ -200,7 +231,7 @@
           <h2>留下基本聯絡資料</h2>
           <div class="input-group"><label for="customer-name">訂購人姓名</label><input id="customer-name" name="name" required placeholder="請輸入真實姓名" /></div>
           <div class="input-group"><label for="customer-phone">聯絡電話</label><input id="customer-phone" name="phone" required inputmode="tel" placeholder="09XX-XXX-XXX" /></div>
-          <div class="input-group"><label for="referrer">介紹人</label><input id="referrer" name="referrer" placeholder="沒有可留白" /></div>
+          <div class="input-group"><label for="referrer">介紹人</label><select id="referrer" name="referrer" required><option value="" selected disabled>請選擇介紹人</option><option>楊翰</option><option>傑評</option><option>軟糖</option></select></div>
           <div class="input-group"><label for="customer-note">想先告訴客服的事 <small>選填</small></label><textarea id="customer-note" name="note" rows="3" placeholder="例如：預計明年春天出發、可能需要四人房"></textarea></div>
           <label class="consent"><input type="checkbox" required /><span>我已閱讀並同意個人資料蒐集告知事項</span></label>
           <div class="dual-actions"><button class="ghost-btn" type="button" data-booking-next="1">上一步</button><button class="primary-btn" type="submit">建立訂單</button></div>
@@ -211,7 +242,7 @@
           <span class="eyebrow dark">RESERVATION CREATED</span>
           <h2>預訂資料已建立</h2>
           <p>訂單編號 <strong id="success-order-id">PMR-000000</strong></p>
-          <div class="success-note">客服確認方案後會透過 LINE 提供專屬匯款資訊。護照與航班資料可稍後從「我的訂單」補上。</div>
+          <div class="success-note"><strong id="success-reserved">專案已保留 0 張，保留 1 天</strong><span id="success-payment-account">介紹人收款帳戶由客服確認後顯示。</span><br />匯款核對完成前不會產生可用額度。護照與航班資料可稍後從「我的訂單」補上。</div>
           <button class="primary-btn wide" data-action="go-orders">查看我的訂單</button>
         </div>
       </section>
