@@ -182,7 +182,7 @@ function renderAll() {
 function switchView(view) {
   qsa(".ops-view").forEach(panel => panel.classList.toggle("is-active", panel.id === `${view}-view`));
   qsa("[data-view]").forEach(button => button.classList.toggle("is-active", button.dataset.view === view));
-  const titles = { dashboard: "今天的營運狀態", orders: "訂單管理", customers: "客戶管理", projects: "專案管理", reports: "月報與分潤", integrations: "串接中心" };
+  const titles = { j168: "J168 真實訂單", dashboard: "今天的營運狀態", orders: "訂單管理", customers: "客戶管理", projects: "專案管理", reports: "月報與分潤", integrations: "串接中心" };
   qs("#page-title").textContent = titles[view];
   qs(".sidebar").classList.remove("is-open");
   window.scrollTo({ top: 0, behavior: "smooth" });

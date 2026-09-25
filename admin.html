@@ -16,26 +16,28 @@
       <aside class="sidebar">
         <a class="ops-brand" href="index.html"><span>P</span><div><strong>PMR</strong><small>OPERATIONS</small></div></a>
         <nav>
-          <button class="is-active" data-view="dashboard"><i>⌂</i><span>營運總覽</span></button>
-          <button data-view="orders"><i>▤</i><span>訂單管理</span><b id="nav-order-count">4</b></button>
+          <button class="is-active" data-view="j168"><i>▤</i><span>J168 真實訂單</span></button>
+          <button data-view="dashboard"><i>⌂</i><span>營運總覽</span></button>
+          <button data-view="orders"><i>▤</i><span>示範訂單管理</span><b id="nav-order-count">4</b></button>
           <button data-view="customers"><i>◎</i><span>客戶管理</span><b id="nav-customer-count">4</b></button>
           <button data-view="projects"><i>✦</i><span>專案管理</span></button>
           <button data-view="reports"><i>＄</i><span>月報與分潤</span></button>
           <button data-view="integrations"><i>⌁</i><span>串接中心</span></button>
         </nav>
-        <div class="sidebar-note"><small>展示模式</small><p>目前與客戶前台共用本機示範資料，不會改動正式試算表。</p></div>
+        <div class="sidebar-note"><small>展示模式</small><p>J168 訂單以匯入快照顯示；雲端試算表已建立，自動同步尚未接通。其他頁面仍為流程示範。</p></div>
         <a class="customer-preview" href="index.html">↗ 開啟客戶前台</a>
       </aside>
 
       <main class="ops-main">
         <header class="ops-topbar">
           <button class="mobile-menu" data-action="toggle-menu">☰</button>
-          <div><span class="breadcrumb">PMR / 營運控制台</span><h1 id="page-title">今天的營運狀態</h1></div>
+          <div><span class="breadcrumb">PMR / 營運控制台</span><h1 id="page-title">J168 真實訂單</h1></div>
           <div class="operator"><span class="online-dot"></span><div><small>負責客服</small><strong>ASH</strong></div><b>A</b></div>
         </header>
 
-        <section class="ops-view is-active" id="dashboard-view">
-          <div class="demo-banner"><div><strong>真實表單資料已匯入展示版</strong><p>目前共 13 筆訂單、9 位客戶。未確認的成本、附件與資料差異會保留警示，不會自動猜測。</p></div><a href="index.html#orders-view">查看客戶畫面 ↗</a></div>
+        <section class="ops-view is-active" id="j168-view"><iframe title="J168 真實訂單與開票申請" src="j168-import.html?v=20260926" style="width:100%;height:calc(100vh - 125px);min-height:600px;border:0;border-radius:16px"></iframe></section>
+        <section class="ops-view" id="dashboard-view">
+          <div class="demo-banner"><div><strong>舊版流程示範資料</strong><p>這裡是舊版瀏覽器示範資料。實際匯入的預訂及申請請查看「J168 真實訂單」。</p></div><a href="index.html#orders-view">查看客戶畫面 ↗</a></div>
 
           <div class="kpi-grid">
             <article><div class="kpi-icon amber">!</div><span>今日待跟進</span><strong id="kpi-followups">0</strong><small>依客服追蹤日期計算</small></article>
@@ -150,6 +152,6 @@
 
     <div class="toast" id="admin-toast"></div>
     <script src="shared-data.js"></script>
-    <script src="admin.js"></script>
+    <script src="admin.js?v=j168-20260926"></script>
   </body>
 </html>
