@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#123f3b" />
+    <title>PMR 我的訂單查詢</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="index.html" aria-label="返回預訂首頁">
+          <span class="brand-mark">P</span>
+          <span>
+            <strong>PMR</strong>
+            <small>TRAVEL CLUB</small>
+          </span>
+        </a>
+        <div class="topbar-actions">
+          <a class="staff-console-link" href="admin.html"><span>展示版</span> 客服後台</a>
+        </div>
+      </header>
+
+      <section class="view is-active" aria-labelledby="lookup-title">
+        <div class="page-intro">
+          <span class="eyebrow dark">MY JOURNEYS</span>
+          <h1 id="lookup-title">我的訂單查詢</h1>
+          <p>請輸入您預訂時填寫的「訂購人 LINE 名稱」，即可查詢所有訂單與可使用額度。</p>
+        </div>
+
+        <form id="lookup-form" class="code-form" style="max-width: 520px; margin: 0 auto 24px;">
+          <label for="lookup-input">訂購人 LINE 名稱</label>
+          <div>
+            <input id="lookup-input" autocomplete="off" placeholder="請輸入 LINE 名稱" required />
+            <button type="submit">查詢訂單</button>
+          </div>
+        </form>
+
+        <div id="lookup-status" class="empty-state" style="display:none;"></div>
+
+        <div id="lookup-result" style="display:none;">
+          <div class="account-summary">
+            <div><small>可使用額度</small><strong id="summary-available">0</strong><span>張</span></div>
+            <div><small>待匯款保留</small><strong id="summary-reserved">0</strong><span>張</span></div>
+            <div><small>處理中</small><strong id="summary-pending">0</strong><span>張</span></div>
+            <div><small>已出票</small><strong id="summary-used">0</strong><span>張</span></div>
+          </div>
+          <div id="orders-list" class="orders-list"></div>
+        </div>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="shared-data.js?v=sheet-sync-2"></script>
+    <script src="my-orders.js?v=sheet-sync-2"></script>
+  </body>
+</html>
