@@ -15,9 +15,9 @@ const compactToday = today.replaceAll("-", "").slice(2);
 
 const qs = selector => document.querySelector(selector);
 const qsa = selector => [...document.querySelectorAll(selector)];
-const money = value => `$${Number(value || 0).toLocaleString("zh-TW")}`;
+const money = value => value === null || value === undefined || value === "" ? "待確認" : `${Number(value).toLocaleString("zh-TW")}`;
 const numberValue = value => Number(value || 0);
-const available = order => order.paymentStatus === "已確認" ? Math.max(0, numberValue(order.purchased) - numberValue(order.pending) - numberValue(order.used) - numberValue(order.refunded)) : 0;
+const available = order => order.imported && [order.used, order.pending, order.refunded].some(v => v === null) ? "待確認" : order.paymentStatus === "已確認" ? Math.max(0, numberValue(order.purchased) - numberValue(order.pending) - numberValue(order.used) - numberValue(order.refunded)) : 0;
 const addOnSale = order => (order.addOns || []).reduce((sum, item) => sum + numberValue(item.price), 0);
 const addOnCost = order => (order.addOns || []).reduce((sum, item) => sum + numberValue(item.cost), 0);
 const grandTotal = order => order.grandTotal !== undefined && order.grandTotal !== null && order.grandTotal !== "" ? numberValue(order.grandTotal) : Math.max(0, numberValue(order.total) + addOnSale(order) - numberValue(order.discountAmount));
@@ -50,8 +50,8 @@ function renderCustomers() {
   });
   qs("#customers-table").innerHTML = visible.map(customer => {
     const customerOrders = orders.filter(order => order.customerId === customer.id);
-    const credits = customerOrders.reduce((sum, order) => sum + available(order), 0);
-    return `<tr data-customer-id="${customer.id}"><td><strong>${customer.realName || "已匿名化"}</strong><small>${customer.id}</small></td><td><strong>${customer.displayName || "未綁定"}</strong><small>${customer.lineUserId || "沒有有效 LINE ID"}</small></td><td><strong>${customer.phone || "—"}</strong><small>${customer.note || "無備註"}</small></td><td class="credit-cell"><b>${customerOrders.length}</b> 筆訂單<small>${credits} 張可用</small></td><td><span class="cell-status ${customer.status === "正常" ? "" : "waiting"}">${customer.status}</span></td><td><strong>${customer.linkedAt || "—"}</strong><small>${customer.previousLineIds?.length || 0} 個歷史帳號</small></td></tr>`;
+    const credits = customerOrders.reduce((sum, order) => sum + (typeof available(order) === "number" ? available(order) : 0), 0);
+    return `<tr data-customer-id="${customer.id}"><td><strong>${customer.realName || "已匿名化"}</strong><small>${customer.id}</small></td><td><strong>${customer.displayName || "未綁定"}</strong><small>${customer.lineUserId || "沒有有效 LINE ID"}</small></td><td><strong>${customer.phone || "—"}</strong><small>${customer.note || "無備註"}</small></td><td class="credit-cell"><b>${customerOrders.length}</b> 筆訂單<small>${customerOrders.some(o => available(o) === "待確認") ? "可用張數待核對" : `${credits} 張可用`}</small></td><td><span class="cell-status ${customer.status === "正常" ? "" : "waiting"}">${customer.status}</span></td><td><strong>${customer.linkedAt || "—"}</strong><small>${customer.previousLineIds?.length || 0} 個歷史帳號</small></td></tr>`;
   }).join("") || `<tr><td colspan="6"><strong>找不到符合條件的客戶</strong></td></tr>`;
 }
 
@@ -146,8 +146,8 @@ function renderOrders() {
   qs("#orders-table").innerHTML = visible.map(order => `<tr data-order-id="${order.id}">
     <td><strong>${order.lineDisplayName || order.customerName}</strong><small>${order.id}</small></td>
     <td><strong>${order.projectId}</strong><small>${order.title}</small></td>
-    <td><span class="cell-status ${statusClass(order)}">${order.paymentStatus}</span><small>${money(order.paymentAmount)} / ${money(grandTotal(order))}</small></td>
-    <td class="credit-cell"><b>${available(order)}</b> 可用<small>${order.paymentStatus === "已確認" ? `購 ${order.purchased}・處理 ${order.pending}・已用 ${order.used}` : `待匯款保留 ${order.purchased} 張・尚未生效`}</small></td>
+    <td><span class="cell-status ${statusClass(order)}">${order.paymentStatus}</span><small>${order.imported ? `申報 ${money(order.reportedPayment)}・實收待核對` : `${money(order.paymentAmount)} / ${money(grandTotal(order))}`}</small></td>
+    <td class="credit-cell"><b>${available(order)}</b> 可用<small>${order.imported ? `預訂 ${order.purchased} 張・出票待核對` : order.paymentStatus === "已確認" ? `購 ${order.purchased}・處理 ${order.pending}・已用 ${order.used}` : `待匯款保留 ${order.purchased} 張・尚未生效`}</small></td>
     <td><strong>${order.docsStatus}</strong><small>${order.ticketStatus}</small></td>
     <td><strong>${order.assignedTo || "待分派"}</strong><small>${order.introducer ? `介紹：${order.introducer}` : "無介紹人"}</small></td>
     <td><strong>${order.nextActionDate || "未排日期"}</strong><small><span class="cell-status ${statusClass(order)}">${order.status}</span></small></td>
@@ -198,7 +198,7 @@ function populateOrderForm(order) {
   form.elements.paymentBank.value = order.paymentAccount?.bank || "";
   form.elements.paymentOwner.value = order.paymentAccount?.owner || "";
   form.elements.paymentAccountNumber.value = order.paymentAccount?.account || "";
-  form.elements.grandTotal.value = grandTotal(order);
+  form.elements.grandTotal.value = order.imported && order.total === null ? "" : grandTotal(order);
   form.elements.grandTotal.readOnly = true;
   const tickets = order.ticketSelections || [];
   const businessCount = tickets.filter(ticket => ticket.cabin === "business").length;
@@ -360,7 +360,7 @@ function saveSelectedOrder(event) {
   const order = orders.find(item => item.id === selectedOrderId);
   if (!order) return;
   ["status", "assignedTo", "paymentStatus", "docsStatus", "ticketStatus", "nextActionDate", "reservationExpiresAt", "introducer", "couponCode", "couponDescription", "internalNotes"].forEach(name => { order[name] = form.elements[name].value; });
-  ["purchased", "pending", "used", "refunded", "total", "paymentAmount", "cost", "serviceFee", "discountAmount", "introducerProfit", "sourceProfit"].forEach(name => { order[name] = numberValue(form.elements[name].value); });
+  ["purchased", "pending", "used", "refunded", "total", "paymentAmount", "cost", "serviceFee", "discountAmount", "introducerProfit", "sourceProfit"].forEach(name => { order[name] = form.elements[name].value === "" && order.imported ? null : numberValue(form.elements[name].value); });
   order.paymentAccount = { bank: form.elements.paymentBank.value.trim(), owner: form.elements.paymentOwner.value.trim(), account: form.elements.paymentAccountNumber.value.trim() };
   order.paid = order.paymentStatus === "已確認";
   order.statusType = order.status === "已完成" ? "completed" : "active";
@@ -381,7 +381,7 @@ function saveSelectedOrder(event) {
   window.PMRStore.saveOrders(orders);
   renderAll();
   closeOrder();
-  toast("已儲存，客戶前台重新整理後會同步更新");
+  toast("已儲存至本機；雲端同步尚未接通");
 }
 
 function createOrder() {
@@ -464,3 +464,5 @@ window.addEventListener("storage", event => {
 });
 
 renderAll();
+
+switchView("orders");

@@ -16,28 +16,25 @@
       <aside class="sidebar">
         <a class="ops-brand" href="index.html"><span>P</span><div><strong>PMR</strong><small>OPERATIONS</small></div></a>
         <nav>
-          <button class="is-active" data-view="j168"><i>▤</i><span>J168 真實訂單</span></button>
           <button data-view="dashboard"><i>⌂</i><span>營運總覽</span></button>
-          <button data-view="orders"><i>▤</i><span>示範訂單管理</span><b id="nav-order-count">4</b></button>
+          <button class="is-active" data-view="orders"><i>▤</i><span>訂單管理</span><b id="nav-order-count">4</b></button>
           <button data-view="customers"><i>◎</i><span>客戶管理</span><b id="nav-customer-count">4</b></button>
           <button data-view="projects"><i>✦</i><span>專案管理</span></button>
           <button data-view="reports"><i>＄</i><span>月報與分潤</span></button>
           <button data-view="integrations"><i>⌁</i><span>串接中心</span></button>
         </nav>
-        <div class="sidebar-note"><small>展示模式</small><p>J168 訂單以匯入快照顯示；雲端試算表已建立，自動同步尚未接通。其他頁面仍為流程示範。</p></div>
+        <div class="sidebar-note"><small>J168 訂單管理</small><p>本機已匯入真實訂單。雲端同步及客戶身分驗證尚未接通。</p></div>
         <a class="customer-preview" href="index.html">↗ 開啟客戶前台</a>
       </aside>
 
       <main class="ops-main">
         <header class="ops-topbar">
           <button class="mobile-menu" data-action="toggle-menu">☰</button>
-          <div><span class="breadcrumb">PMR / 營運控制台</span><h1 id="page-title">J168 真實訂單</h1></div>
+          <div><span class="breadcrumb">PMR / 營運控制台</span><h1 id="page-title">訂單管理</h1></div>
           <div class="operator"><span class="online-dot"></span><div><small>負責客服</small><strong>ASH</strong></div><b>A</b></div>
         </header>
-
-        <section class="ops-view is-active" id="j168-view"><iframe title="J168 真實訂單與開票申請" src="j168-import.html?v=20260926" style="width:100%;height:calc(100vh - 125px);min-height:600px;border:0;border-radius:16px"></iframe></section>
         <section class="ops-view" id="dashboard-view">
-          <div class="demo-banner"><div><strong>舊版流程示範資料</strong><p>這裡是舊版瀏覽器示範資料。實際匯入的預訂及申請請查看「J168 真實訂單」。</p></div><a href="index.html#orders-view">查看客戶畫面 ↗</a></div>
+          <div class="demo-banner"><div><strong>J168 真實預訂</strong><p>已移除舊示範訂單；付款、出票與手機對應依實際核對結果更新。</p></div><a href="index.html#orders-view">查看客戶畫面 ↗</a></div>
 
           <div class="kpi-grid">
             <article><div class="kpi-icon amber">!</div><span>今日待跟進</span><strong id="kpi-followups">0</strong><small>依客服追蹤日期計算</small></article>
@@ -77,7 +74,7 @@
           <div class="policy-note"><strong>LINE 換帳號處理方式</strong><p>由新 LINE 帳號登入後完成一次性驗證，再把新 user ID 綁到原客戶編號。舊 LINE ID 留在歷史紀錄並停用，訂單、剩餘額度與付款紀錄不搬動。</p></div>
         </section>
 
-        <section class="ops-view" id="orders-view">
+        <section class="ops-view is-active" id="orders-view">
           <div class="page-actions"><div><p>以訂單編號串接客戶、付款、額度、補件與利潤。</p></div><button class="primary-action" data-action="new-order">＋ 建立訂單</button></div>
           <section class="panel table-panel">
             <div class="table-tools">
@@ -129,7 +126,7 @@
       <div class="drawer-head"><div><small>ORDER DETAIL</small><h2 id="drawer-order-id">訂單</h2></div><button data-action="close-drawer">×</button></div>
       <form id="order-form">
         <div class="drawer-section customer-summary" id="drawer-customer"></div>
-        <div class="drawer-section"><h3>兩階段流程</h3><div class="stage-explainer"><b>第一階段｜購買額度</b><span>提供帳號 → 客戶匯款 → 客服核帳 → 額度生效</span><b>第二階段｜使用額度</b><span>客戶申請使用 → 補護照／航班 → 處理出票 → 完成</span></div><div class="form-grid two"><label>營運狀態<select name="status"><option>待提供匯款帳號</option><option>待客戶匯款</option><option>待核對匯款</option><option>額度已生效／尚未使用</option><option>待補護照與航班</option><option>待補護照</option><option>待補航班</option><option>資料已齊／待客服處理</option><option>資料待核對</option><option>已完成</option><option>已取消</option></select></label><label>負責客服<select name="assignedTo"><option>ASH</option></select></label><label>付款狀態<select name="paymentStatus"><option>待提供匯款帳號</option><option>待客戶匯款</option><option>待核對匯款</option><option>已確認</option><option>退款處理中</option><option>已退款</option></select></label><label>缺件狀態<select name="docsStatus"><option>尚未申請使用</option><option>缺護照</option><option>缺航班</option><option>缺護照與航班</option><option>資料已齊</option><option>資料待逐組核對</option></select></label><label>出票明細<select name="ticketStatus"><option>尚未出票</option><option>處理中</option><option>已出票</option><option>不適用</option></select></label><label>客服追蹤日期<input name="nextActionDate" type="date" /><small class="source-note">不是出發日期；用於提醒 ASH 何時跟進</small></label><label>出發日期<input name="departureDate" type="date" /></label><label>回程日期<input name="returnDate" type="date" /></label></div></div>
+        <div class="drawer-section"><h3>兩階段流程</h3><div class="stage-explainer"><b>第一階段｜購買額度</b><span>提供帳號 → 客戶匯款 → 客服核帳 → 額度生效</span><b>第二階段｜使用額度</b><span>客戶申請使用 → 補護照／航班 → 處理出票 → 完成</span></div><div class="form-grid two"><label>營運狀態<select name="status"><option>待提供匯款帳號</option><option>待客戶匯款</option><option>待核對匯款</option><option>額度已生效／尚未使用</option><option>待補護照與航班</option><option>待補護照</option><option>待補航班</option><option>資料已齊／待客服處理</option><option>資料待核對</option><option>已完成</option><option>已取消</option></select></label><label>負責客服<select name="assignedTo"><option>J168</option><option>ASH</option></select></label><label>付款狀態<select name="paymentStatus"><option>待核帳</option><option>待提供匯款帳號</option><option>待客戶匯款</option><option>待核對匯款</option><option>已確認</option><option>退款處理中</option><option>已退款</option></select></label><label>缺件狀態<select name="docsStatus"><option>尚未申請使用</option><option>缺護照</option><option>缺航班</option><option>缺護照與航班</option><option>資料已齊</option><option>資料待逐組核對</option></select></label><label>出票明細<select name="ticketStatus"><option>待確認</option><option>尚未出票</option><option>處理中</option><option>已出票</option><option>不適用</option></select></label><label>客服追蹤日期<input name="nextActionDate" type="date" /><small class="source-note">不是出發日期；用於提醒 ASH 何時跟進</small></label><label>出發日期<input name="departureDate" type="date" /></label><label>回程日期<input name="returnDate" type="date" /></label></div></div>
         <div class="drawer-section"><h3>額度與款項</h3><div class="credit-policy">匯款核對完成前，下單張數只列為「待匯款保留」，不會產生可使用額度。</div><div class="form-grid four"><label>購買／保留<input name="purchased" type="number" min="0" /></label><label>處理中<input name="pending" type="number" min="0" /></label><label>已出票<input name="used" type="number" min="0" /></label><label>退款<input name="refunded" type="number" min="0" /></label></div><div class="form-grid two"><label>保留截止<input name="reservationExpiresAt" type="datetime-local" /></label><label>機票售價<input name="total" type="number" min="0" /></label><label>含加購應收<input name="grandTotal" type="number" min="0" /></label><label>實收金額<input name="paymentAmount" type="number" min="0" /></label><label>機票成本<input name="cost" type="number" min="0" /></label><label>客服費用<input name="serviceFee" type="number" min="0" /></label></div><div id="ticket-selection-summary" class="checkout-summary"></div><div class="profit-preview" id="profit-preview"></div></div>
         <div class="drawer-section"><h3>介紹人與本訂單收款帳戶</h3><div class="credit-policy">這是該筆訂單當時提供給客人的帳號，不會因介紹人的預設帳號日後變更而被覆蓋。</div><div class="form-grid two"><label>介紹人<select name="introducer"><option value="">未指定</option><option>楊翰</option><option>傑評</option><option>軟糖</option></select></label><label>收款銀行<input name="paymentBank" placeholder="例如：中國信託" /></label><label>戶名<input name="paymentOwner" /></label><label>完整收款帳號<input name="paymentAccountNumber" placeholder="請由客服設定" /></label></div></div>
         <div class="drawer-section"><h3>優惠代碼、分潤與加購</h3><div class="form-grid two"><label>優惠代碼<input name="couponCode" /></label><label>優惠內容<input name="couponDescription" placeholder="例如：機場接送免費" /></label><label>優惠折抵<input name="discountAmount" type="number" min="0" /></label><label>介紹人利潤<input name="introducerProfit" type="number" min="0" /></label><label>資源方利潤<input name="sourceProfit" type="number" min="0" /></label></div><div id="checkout-addons-editor" class="checkout-addons-editor"></div><div class="form-grid two"><label>其他加購項目<input name="addOnName" placeholder="例如：四人房" /></label><label>其他加購售價<input name="addOnPrice" type="number" min="0" /></label><label>其他加購成本<input name="addOnCost" type="number" min="0" /></label></div></div>
@@ -151,7 +148,7 @@
     </aside>
 
     <div class="toast" id="admin-toast"></div>
-    <script src="shared-data.js"></script>
-    <script src="admin.js?v=j168-20260926"></script>
+    <script src="shared-data.js?v=real-orders-2"></script>
+    <script src="admin.js?v=real-orders-2"></script>
   </body>
 </html>
