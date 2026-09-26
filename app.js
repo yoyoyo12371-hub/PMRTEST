@@ -421,7 +421,7 @@ function renderOrders(filter = "active") {
           ${order.couponCode ? `<div class="order-note">優惠代碼：${order.couponCode}・折抵 ${money(order.discountAmount || 0)}</div>` : ""}
           ${cabinDetails}
           ${extras}
-          <button class="redeem-btn" data-redeem-order="${order.id}" ${available === 0 ? "disabled" : ""}>${order.paid ? "我要使用額度" : "付款確認後即可使用"}</button>
+          <button class="redeem-btn" data-redeem-order="${order.id}" ${available === 0 ? "disabled" : ""}>${order.paid ? "申請使用／出票" : "付款確認後即可使用"}</button>
           <button class="supplement-btn" data-supplement-order="${order.id}">補上護照／航班</button>
         </aside>
       </div>
@@ -557,11 +557,7 @@ document.addEventListener("click", event => {
 
   const redeemButton = event.target.closest("[data-redeem-order]");
   if (redeemButton) {
-    selectedOrder = orders.find(order => order.id === redeemButton.dataset.redeemOrder);
-    redeemQuantity = 1;
-    qs("#redeem-quantity").textContent = redeemQuantity;
-    qs("#redeem-available").textContent = getAvailable(selectedOrder);
-    openModal("redeem-modal");
+    window.open("https://meiching23.github.io/ticket-registration/?v=5", "_blank", "noopener");
   }
 
   const redeemQuantityButton = event.target.closest("[data-redeem-quantity]");
