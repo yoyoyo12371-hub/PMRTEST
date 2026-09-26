@@ -185,7 +185,8 @@
             createdAt: order.createdAt,
             lineDisplayName: order.lineDisplayName,
             introducer: order.introducer,
-            internalNotes: order.internalNotes
+            internalNotes: order.internalNotes,
+            phone: order.phone || ""
           }
         })
       });

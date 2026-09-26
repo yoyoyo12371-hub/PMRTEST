@@ -212,28 +212,21 @@ let orders = window.PMRStore
   : fallbackOrders;
 
 let selectedProject = projects[0];
-let bookingQuantity = 1;
-let ticketSelections = [];
-let airportTransfer = "none";
-let appliedCoupon = null;
 let redeemQuantity = 1;
 let selectedOrder = orders[0];
 
 const STARLUX_PRICE_PER_TICKET = 2000;
-const AIRPORT_TRANSFERS = {
-  none: { label: "不需要機場接送", price: 0 },
-  oneWay: { label: "機場接送・單趟", price: 1800 },
-  roundTrip: { label: "機場接送・來回", price: 3600 }
-};
+const TRANSFER_NOTE = "轉帳完成後，請提供「帳號後五碼」或「明細截圖」，我們會盡快為您確認。";
 const INTRODUCER_ACCOUNTS = {
-  "楊翰": { owner: "楊翰", bank: "待客服設定銀行", account: "待客服設定帳號" },
-  "傑評": { owner: "傑評", bank: "待客服設定銀行", account: "待客服設定帳號" },
-  "軟糖": { owner: "軟糖", bank: "待客服設定銀行", account: "待客服設定帳號" }
+  "阮糖": { owner: "阮糖", bank: "808 玉山銀行", account: "0598979149738" },
+  "傑評": { owner: "傑評", bank: "808 玉山銀行 板新分行", account: "0484979104255" },
+  "楊翰": { owner: "楊翰", bank: "013 國泰世華銀行 新興分行", account: "052501068462" },
+  "史考特": { owner: "史考特", bank: "822 中國信託銀行 北桃園分行", account: "864540369489" }
 };
-const COUPON_RULES = {
-  TRANSFERFREE: { type: "transfer", description: "機場接送費全額減免" },
-  PMR95: { type: "percent", rate: 0.95, description: "本次訂單 95 折" }
-};
+const DEFAULT_INTRODUCER_ACCOUNT = INTRODUCER_ACCOUNTS["傑評"];
+function introducerAccount(name) {
+  return INTRODUCER_ACCOUNTS[name] || DEFAULT_INTRODUCER_ACCOUNT;
+}
 
 const money = value => `$${Number(value).toLocaleString("zh-TW")}`;
 const qs = selector => document.querySelector(selector);
@@ -245,60 +238,6 @@ const localDate = (date = new Date()) => {
   return `${year}-${month}-${day}`;
 };
 
-function splitAmount(total, count) {
-  const base = Math.floor(Number(total || 0) / count);
-  const remainder = Number(total || 0) - base * count;
-  return Array.from({ length: count }, (_item, index) => base + (index < remainder ? 1 : 0));
-}
-
-function rebuildTicketSelections(preserve = true) {
-  const previous = preserve ? ticketSelections : [];
-  const credits = Number(selectedProject.credits || 1);
-  const economyPrices = splitAmount(selectedProject.price, credits);
-  const businessPrices = splitAmount(selectedProject.businessPrice, credits);
-  const economyCosts = splitAmount(selectedProject.unitCost, credits);
-  const businessCosts = splitAmount(selectedProject.businessCost, credits);
-  ticketSelections = Array.from({ length: credits * bookingQuantity }, (_item, index) => {
-    const withinPackage = index % credits;
-    const old = previous[index];
-    return {
-      index,
-      packageNumber: Math.floor(index / credits) + 1,
-      ticketNumber: withinPackage + 1,
-      cabin: old?.cabin || "economy",
-      starlux: old?.starlux || false,
-      economyPrice: economyPrices[withinPackage],
-      businessPrice: businessPrices[withinPackage],
-      economyCost: economyCosts[withinPackage],
-      businessCost: businessCosts[withinPackage]
-    };
-  });
-}
-
-function bookingPricing() {
-  const ticketSubtotal = ticketSelections.reduce((sum, ticket) => sum + (ticket.cabin === "business" ? ticket.businessPrice : ticket.economyPrice), 0);
-  const ticketCost = ticketSelections.reduce((sum, ticket) => sum + (ticket.cabin === "business" ? ticket.businessCost : ticket.economyCost), 0);
-  const businessCount = ticketSelections.filter(ticket => ticket.cabin === "business").length;
-  const starluxCount = ticketSelections.filter(ticket => ticket.starlux).length;
-  const starluxTotal = starluxCount * STARLUX_PRICE_PER_TICKET;
-  const transferTotal = AIRPORT_TRANSFERS[airportTransfer].price;
-  const beforeDiscount = ticketSubtotal + starluxTotal + transferTotal;
-  let discountAmount = 0;
-  if (appliedCoupon?.type === "transfer") discountAmount = transferTotal;
-  if (appliedCoupon?.type === "percent") discountAmount = Math.round(beforeDiscount * (1 - appliedCoupon.rate));
-  return {
-    ticketSubtotal,
-    ticketCost,
-    businessCount,
-    economyCount: ticketSelections.length - businessCount,
-    starluxCount,
-    starluxTotal,
-    transferTotal,
-    discountAmount,
-    grandTotal: Math.max(0, beforeDiscount - discountAmount)
-  };
-}
-
 function orderGrandTotal(order) {
   if (order.grandTotal !== undefined && order.grandTotal !== null && order.grandTotal !== "") return Number(order.grandTotal);
   return Math.max(0, Number(order.total || 0) + (order.addOns || []).reduce((sum, item) => sum + Number(item.price || 0), 0) - Number(order.discountAmount || 0));
@@ -306,8 +245,16 @@ function orderGrandTotal(order) {
 
 function paymentAccountText(order) {
   const account = order.paymentAccount || {};
-  if (!account.account || account.account.includes("待客服設定")) return `${order.introducer || "介紹人"}的收款帳戶：客服確認後顯示`;
-  return `${account.bank || "銀行帳戶"}｜戶名 ${account.owner || order.introducer}｜${account.account}`;
+  if (!account.account) return `${order.introducer || "介紹人"}的收款帳戶：客服確認後顯示`;
+  return `${account.bank || "銀行帳戶"}｜匯款帳號 ${account.account}`;
+}
+
+function paymentAccountHtml(order) {
+  const account = order.paymentAccount || {};
+  return `<strong>${order.introducer || "介紹人"} 匯款資訊</strong>
+    <p>【銀行代碼】${account.bank || ""}</p>
+    <p>【匯款帳號】${account.account || ""}</p>
+    <p>${TRANSFER_NOTE}</p>`;
 }
 
 function projectCard(project, compact = false) {
@@ -377,6 +324,7 @@ function getAvailable(order) {
 }
 
 function renderOrders(filter = "active") {
+  if (!qs("#orders-list")) return;
   const filtered = filter === "all" ? orders : orders.filter(order => order.statusType === filter);
   qs("#orders-list").innerHTML = filtered.length ? filtered.map(order => {
     const available = getAvailable(order);
@@ -458,33 +406,10 @@ function closeModal(id) {
 
 function setBookingStep(step) {
   qsa("[data-booking-step]").forEach(panel => panel.classList.toggle("is-active", Number(panel.dataset.bookingStep) === step));
-  qsa(".booking-progress span").forEach((bar, index) => bar.classList.toggle("is-active", index < step));
 }
 
 function updateBookingSummary() {
-  qs("#booking-project-summary").innerHTML = `<div class="summary-symbol">${selectedProject.symbol}</div><div><strong>${selectedProject.id}｜${selectedProject.title}</strong><small>${selectedProject.route}・${selectedProject.credits === 1 ? "單張" : `每組 ${selectedProject.credits} 張`}</small></div>`;
-  qs("#booking-quantity").textContent = bookingQuantity;
-  qs("#booking-unit-label").textContent = selectedProject.unit;
-  qs("#booking-ticket-list").innerHTML = ticketSelections.map(ticket => {
-    const label = selectedProject.credits === 1
-      ? `第 ${ticket.index + 1} 張`
-      : `第 ${ticket.packageNumber} 組・第 ${ticket.ticketNumber} 張`;
-    return `<article class="ticket-option-card">
-      <div class="ticket-option-head"><strong>${label}</strong><span>${ticket.cabin === "business" ? "商務艙" : "經濟艙"}${ticket.starlux ? "・星宇" : ""}</span></div>
-      <div class="cabin-options">
-        <label><input type="radio" name="ticket-cabin-${ticket.index}" value="economy" data-ticket-cabin="${ticket.index}" ${ticket.cabin === "economy" ? "checked" : ""}><span><b>經濟艙</b><small>${money(ticket.economyPrice)}</small></span></label>
-        <label><input type="radio" name="ticket-cabin-${ticket.index}" value="business" data-ticket-cabin="${ticket.index}" ${ticket.cabin === "business" ? "checked" : ""}><span><b>商務艙</b><small>${money(ticket.businessPrice)}</small></span></label>
-      </div>
-      <label class="starlux-toggle"><input type="checkbox" data-ticket-starlux="${ticket.index}" ${ticket.starlux ? "checked" : ""}><span><b>指定星宇航空</b><small>本張加購 ${money(STARLUX_PRICE_PER_TICKET)}</small></span></label>
-    </article>`;
-  }).join("");
-  const pricing = bookingPricing();
-  qs("#booking-ticket-subtotal").textContent = money(pricing.ticketSubtotal);
-  qs("#booking-starlux-total").textContent = money(pricing.starluxTotal);
-  qs("#booking-transfer-total").textContent = money(pricing.transferTotal);
-  qs("#booking-discount-total").textContent = `-${money(pricing.discountAmount)}`;
-  qs("#booking-discount-row").hidden = pricing.discountAmount === 0;
-  qs("#booking-total").textContent = money(pricing.grandTotal);
+  qs("#booking-project-summary").innerHTML = `<div class="summary-symbol">${selectedProject.symbol}</div><div><strong>${selectedProject.id}｜${selectedProject.title}</strong><small>${selectedProject.route}</small></div>`;
 }
 
 function showToast(message) {
@@ -523,135 +448,49 @@ document.addEventListener("click", event => {
   const bookingButton = event.target.closest("[data-book-project]");
   if (bookingButton) {
     selectedProject = allProjects.find(project => project.id === bookingButton.dataset.bookProject);
-    bookingQuantity = 1;
-    airportTransfer = "none";
-    appliedCoupon = null;
-    qs("#coupon-code").value = "";
-    qs("#coupon-feedback").textContent = "可減免機場接送或套用指定折扣；每筆訂單限用一組。";
-    qs("#coupon-feedback").className = "";
-    qsa('input[name="airport-transfer"]').forEach(input => { input.checked = input.value === "none"; });
-    rebuildTicketSelections(false);
+    qs("#booking-form").reset();
+    qs("#qty-economy").value = 1;
+    qs("#qty-business").value = 0;
+    qs("#qty-starlux").value = 0;
     updateBookingSummary();
     setBookingStep(1);
     openModal("booking-modal");
   }
 
-  const quantityButton = event.target.closest("[data-quantity]");
-  if (quantityButton) {
-    bookingQuantity = Math.max(1, Math.min(9, bookingQuantity + (quantityButton.dataset.quantity === "plus" ? 1 : -1)));
-    rebuildTicketSelections();
-    updateBookingSummary();
-  }
-
-  const ticketPreset = event.target.closest("[data-ticket-preset]");
-  if (ticketPreset) {
-    ticketSelections.forEach(ticket => { ticket.cabin = ticketPreset.dataset.ticketPreset; });
-    updateBookingSummary();
-  }
-
-  const nextButton = event.target.closest("[data-booking-next]");
-  if (nextButton) setBookingStep(Number(nextButton.dataset.bookingNext));
-
   const closeButton = event.target.closest("[data-close-modal]");
-  if (closeButton) closeModal(closeButton.dataset.closeModal);
+  if (closeButton) {
+    closeModal(closeButton.dataset.closeModal);
+    setBookingStep(1);
+  }
 
   const redeemButton = event.target.closest("[data-redeem-order]");
   if (redeemButton) {
     window.open("https://meiching23.github.io/ticket-registration/?v=5", "_blank", "noopener");
   }
 
-  const redeemQuantityButton = event.target.closest("[data-redeem-quantity]");
-  if (redeemQuantityButton) {
-    const max = getAvailable(selectedOrder);
-    redeemQuantity = Math.max(1, Math.min(max, redeemQuantity + (redeemQuantityButton.dataset.redeemQuantity === "plus" ? 1 : -1)));
-    qs("#redeem-quantity").textContent = redeemQuantity;
-  }
-
-  const supplementButton = event.target.closest("[data-supplement-order]");
-  if (supplementButton) {
-    selectedOrder = orders.find(order => order.id === supplementButton.dataset.supplementOrder);
-    openModal("supplement-modal");
-  }
-
   const action = event.target.closest("[data-action]")?.dataset.action;
   if (action === "scroll-projects") qs("#projects-section").scrollIntoView({ behavior: "smooth" });
-  if (action === "go-orders") { closeModal("booking-modal"); switchView("orders"); renderOrders(); }
-  if (action === "submit-redemption") {
-    selectedOrder.pending += redeemQuantity;
-    selectedOrder.status = "兌換申請已建立";
-    if (window.PMRStore) window.PMRStore.upsertOrder(selectedOrder);
-    closeModal("redeem-modal");
-    renderOrders();
-    showToast(`已保留 ${redeemQuantity} 張額度，可稍後補上旅客資料`);
-  }
-  if (action === "save-files") { closeModal("supplement-modal"); showToast("補件進度已儲存（展示版）"); }
   if (action === "contact") showToast("正式版會開啟您的 LINE 專屬客服聊天室");
   if (action === "profile") showToast("已使用 LINE 身分安全登入");
   if (action === "lookup-project") lookupProject(qs("#project-code-input").value);
-  if (action === "apply-coupon") {
-    const code = qs("#coupon-code").value.trim().toUpperCase();
-    const rule = COUPON_RULES[code];
-    if (!rule) {
-      appliedCoupon = null;
-      qs("#coupon-feedback").textContent = "優惠代碼無效或已過期，請向客服確認。";
-      qs("#coupon-feedback").className = "is-error";
-    } else {
-      appliedCoupon = { code, ...rule };
-      qs("#coupon-feedback").textContent = `已套用：${rule.description}`;
-      qs("#coupon-feedback").className = "is-success";
-    }
-    updateBookingSummary();
-  }
-});
-
-qs("#booking-modal").addEventListener("change", event => {
-  const cabinInput = event.target.closest("[data-ticket-cabin]");
-  if (cabinInput) {
-    const ticket = ticketSelections[Number(cabinInput.dataset.ticketCabin)];
-    if (ticket) ticket.cabin = cabinInput.value;
-    updateBookingSummary();
-    return;
-  }
-  const starluxInput = event.target.closest("[data-ticket-starlux]");
-  if (starluxInput) {
-    const ticket = ticketSelections[Number(starluxInput.dataset.ticketStarlux)];
-    if (ticket) ticket.starlux = starluxInput.checked;
-    updateBookingSummary();
-    return;
-  }
-  if (event.target.matches('input[name="airport-transfer"]')) {
-    airportTransfer = event.target.value;
-    updateBookingSummary();
-  }
 });
 
 qs("#booking-form").addEventListener("submit", event => {
   event.preventDefault();
   if (!event.currentTarget.reportValidity()) return;
   const formData = new FormData(event.currentTarget);
-  const pricing = bookingPricing();
-  const transfer = AIRPORT_TRANSFERS[airportTransfer];
+  const businessCount = Math.max(0, Number(formData.get("businessCount") || 0));
+  const economyCount = Math.max(0, Number(formData.get("economyCount") || 0));
+  const starluxCount = Math.max(0, Number(formData.get("starluxCount") || 0));
+  const purchased = businessCount + economyCount;
+  if (purchased <= 0) {
+    showToast("請至少填寫 1 張商務艙或經濟艙張數");
+    return;
+  }
   const introducer = formData.get("referrer");
-  const checkoutAddOns = [];
-  if (pricing.starluxCount) checkoutAddOns.push({
-    name: `指定星宇航空（${pricing.starluxCount} 張）`,
-    price: pricing.starluxTotal,
-    cost: 0,
-    quantity: pricing.starluxCount,
-    unitPrice: STARLUX_PRICE_PER_TICKET,
-    source: "checkout",
-    costStatus: "待客服填入"
-  });
-  if (transfer.price) checkoutAddOns.push({
-    name: transfer.label,
-    price: transfer.price,
-    cost: 0,
-    quantity: 1,
-    unitPrice: transfer.price,
-    source: "checkout",
-    costStatus: "待客服填入"
-  });
-  if (formData.get("note")) checkoutAddOns.push({ name: "特殊需求待報價", price: 0, cost: 0, source: "manual" });
+  const ticketSubtotal = economyCount * Number(selectedProject.price || 0) + businessCount * Number(selectedProject.businessPrice || 0);
+  const starluxTotal = starluxCount * STARLUX_PRICE_PER_TICKET;
+  const grandTotal = ticketSubtotal + starluxTotal;
   const createdDate = localDate();
   const reservationDate = localDate(new Date(Date.now() + 86400000));
   const newId = `PMR-${createdDate.replaceAll("-", "").slice(2)}-${String(orders.length + 19).padStart(3, "0")}`;
@@ -659,13 +498,13 @@ qs("#booking-form").addEventListener("submit", event => {
     id: newId,
     customerId: "CUS-0001",
     lineUserId: "demo-yvonne",
-    lineDisplayName: formData.get("lineName"),
+    lineDisplayName: formData.get("name"),
     customerName: formData.get("name"),
-    phone: "",
+    phone: formData.get("phone") || "",
     projectId: selectedProject.id,
     title: selectedProject.title,
     route: selectedProject.route,
-    purchased: selectedProject.credits * bookingQuantity,
+    purchased,
     pending: 0,
     used: 0,
     refunded: 0,
@@ -673,50 +512,30 @@ qs("#booking-form").addEventListener("submit", event => {
     expiry: selectedProject.expiry,
     status: "等待付款",
     statusType: "active",
-    total: pricing.ticketSubtotal,
-    grandTotal: pricing.grandTotal,
+    total: ticketSubtotal,
+    grandTotal,
     paymentAmount: 0,
     paymentStatus: "待匯款",
-    cost: pricing.ticketCost,
-    serviceFee: ticketSelections.length * 500,
     introducer,
-    paymentAccount: { ...INTRODUCER_ACCOUNTS[introducer] },
+    paymentAccount: { ...introducerAccount(introducer) },
     reservationExpiresAt: `${reservationDate}T23:59`,
-    couponCode: appliedCoupon?.code || "",
-    couponType: appliedCoupon?.type || "",
-    couponDescription: appliedCoupon?.description || "",
-    discountAmount: pricing.discountAmount,
-    introducerProfit: 0,
-    sourceProfit: 0,
     docsStatus: "尚未補件",
     ticketStatus: "尚未出票",
     assignedTo: "待分派",
     nextActionDate: reservationDate,
     internalNotes: formData.get("note") || "",
-    ticketSelections: ticketSelections.map(ticket => ({
-      ticketNumber: ticket.index + 1,
-      packageNumber: ticket.packageNumber,
-      cabin: ticket.cabin,
-      starlux: ticket.starlux,
-      sellPrice: ticket.cabin === "business" ? ticket.businessPrice : ticket.economyPrice,
-      cost: ticket.cabin === "business" ? ticket.businessCost : ticket.economyCost
-    })),
-    cabinSummary: { economy: pricing.economyCount, business: pricing.businessCount },
-    airportTransfer,
-    addOns: checkoutAddOns,
+    cabinSummary: { economy: economyCount, business: businessCount },
+    starluxCount,
     createdAt: createdDate.replaceAll("-", "/"),
-    activity: [{ at: createdDate.replaceAll("-", "/"), text: `客戶由前台建立訂單，${ticketSelections.length} 張待匯款保留 1 天` }]
+    activity: [{ at: createdDate.replaceAll("-", "/"), text: `客戶由前台建立訂單，商務 ${businessCount} 張／經濟 ${economyCount} 張，待匯款保留 1 天` }]
   };
   orders.unshift(newOrder);
   if (window.PMRStore) {
     window.PMRStore.upsertOrder(newOrder);
     window.PMRStore.pushOrderToSheet(newOrder);
   }
-  qs("#success-order-id").textContent = newId;
-  qs("#success-reserved").textContent = `專案已保留 ${newOrder.purchased} 張，保留 1 天`;
-  qs("#success-payment-account").textContent = paymentAccountText(newOrder);
-  setBookingStep(3);
-  renderOrders();
+  qs("#success-payment-account").innerHTML = paymentAccountHtml(newOrder);
+  setBookingStep(2);
   event.currentTarget.reset();
 });
 
