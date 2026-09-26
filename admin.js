@@ -463,6 +463,14 @@ window.addEventListener("storage", event => {
   renderAll();
 });
 
+window.addEventListener("pmr-data-updated", event => {
+  const key = event.detail?.key;
+  if (key && key !== window.PMRStore.keys.orders && key !== window.PMRStore.keys.customers) return;
+  orders = window.PMRStore.getOrders();
+  customers = window.PMRStore.getCustomers();
+  renderAll();
+});
+
 renderAll();
 
 switchView("orders");

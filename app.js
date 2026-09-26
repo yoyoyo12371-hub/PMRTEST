@@ -753,3 +753,12 @@ window.addEventListener("storage", event => {
   selectedOrder = orders[0];
   renderOrders();
 });
+
+window.addEventListener("pmr-data-updated", event => {
+  if (!window.PMRStore) return;
+  const key = event.detail?.key;
+  if (key && key !== window.PMRStore.keys.orders) return;
+  orders = window.PMRStore.getOrders().filter(order => order.customerId === "CUS-0001");
+  selectedOrder = orders[0];
+  renderOrders();
+});

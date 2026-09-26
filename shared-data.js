@@ -2,6 +2,7 @@
   const ORDERS_KEY = "pmr-demo-orders-v2";
   const PROJECTS_KEY = "pmr-demo-admin-projects-v1";
   const CUSTOMERS_KEY = "pmr-demo-customers-v1";
+  const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbw53exYwFxChR-iroPiEKaCqeeKIrK1XRLqpdFskAclIXtUXUVlUVV6s7qXrUam-SJF/exec";
 
   const defaultOrders = [];
 
@@ -36,34 +37,62 @@
 
   const demoOrders = new Set(["PMR-260913-018","PMR-260914-021","PMR-260914-022","PMR-260912-014","PMR-260926-034"]);
   const demoCustomers = new Set(["CUS-0001","CUS-0002","CUS-0003","CUS-0004"]);
-  if (!localStorage.getItem("pmr-real-orders-migration-v1")) {
-    const snapshot = read("pmr-j168-dataset-v1", {bookings: []});
-    const retained = read(ORDERS_KEY, []).filter(o => !demoOrders.has(o.id));
-    const people = read(CUSTOMERS_KEY, []).filter(c => !demoCustomers.has(c.id));
-    for (const b of snapshot.bookings || []) {
-      if (retained.some(o => o.id === b.id)) continue;
+
+  function mapPaymentStatus_(raw) {
+    return (raw === "已確認" || raw === "已核帳") ? "已確認" : "待核帳";
+  }
+
+  // Live sync: pulls the "預訂" tab of the PMR J168 雲端資料庫 Google Sheet
+  // (via its Apps Script Web App) and adds any booking not already stored
+  // locally. Existing orders are never overwritten, so admin edits made in
+  // admin.html always win over the sheet.
+  async function syncFromSheet_() {
+    if (!SHEET_API_URL) return false;
+    let data;
+    try {
+      const response = await fetch(SHEET_API_URL, { cache: "no-store" });
+      data = await response.json();
+    } catch (_error) {
+      return false;
+    }
+    if (!data || data.ok === false || !Array.isArray(data.bookings)) return false;
+
+    const orders = read(ORDERS_KEY, defaultOrders).filter(o => !demoOrders.has(o.id));
+    const customers = read(CUSTOMERS_KEY, defaultCustomers).filter(c => !demoCustomers.has(c.id));
+    let changed = false;
+
+    for (const b of data.bookings) {
+      if (!b || !b.id || orders.some(o => o.id === b.id)) continue;
+      changed = true;
       const customerId = "J168-CUSTOMER-" + b.id;
-      if (!people.some(c => c.id === customerId)) people.push({
-        id: customerId, realName: b.customer, displayName: b.lineName || b.customer,
-        phone: "", lineUserId: "", status: "待手機核對", linkedAt: "", previousLineIds: [],
-        note: "來源預訂未提供手機；請核對後填入，不依姓名自動合併。"
-      });
-      retained.push({
-        id:b.id, customerId, customerName:b.customer, lineDisplayName:b.lineName || b.customer,
-        lineUserId:"", phone:"", projectId:(b.project.match(/\b\d{4}[A-Z]\b/) || ["原始預訂"])[0],
-        title:b.project.split("\n")[0], projectOriginal:b.project, route:"", purchased:b.quantity,
-        pending:null, used:null, refunded:null, paid:false, paymentStatus:"待核帳",
-        reportedPayment:b.reportedPayment, paymentAmount:null, total:null, grandTotal:null,
-        cost:null, serviceFee:null, introducer:b.introducer || "", introducerProfit:null, sourceProfit:null,
-        docsStatus:"資料待逐組核對", ticketStatus:"待確認", assignedTo:"J168", nextActionDate:"",
-        expiry:"", status:"資料待核對", statusType:"active", internalNotes:b.notes || "",
-        addOns:[], createdAt:b.createdAt, imported:true, cabin:b.cabin, starlux:b.starlux,
-        activity:[{at:b.createdAt,text:"由 J168 預訂資料匯入；付款及出票狀態待核對"}]
+      if (!customers.some(c => c.id === customerId)) {
+        customers.push({
+          id: customerId, realName: b.customer || "", displayName: b.lineName || b.customer || "",
+          phone: "", lineUserId: "", status: "待手機核對", linkedAt: "", previousLineIds: [],
+          note: "來源預訂未提供手機；請核對後填入，不依姓名自動合併。"
+        });
+      }
+      const project = b.project || "";
+      orders.push({
+        id: b.id, customerId, customerName: b.customer || "", lineDisplayName: b.lineName || b.customer || "",
+        lineUserId: "", phone: "", projectId: (project.match(/\b\d{4}[A-Z]\b/) || ["原始預訂"])[0],
+        title: project.split("\n")[0], projectOriginal: project, route: "", purchased: Number(b.quantity || 0),
+        pending: null, used: b.used === null || b.used === undefined ? null : Number(b.used), refunded: null,
+        paid: mapPaymentStatus_(b.paymentStatus) === "已確認", paymentStatus: mapPaymentStatus_(b.paymentStatus),
+        reportedPayment: b.reportedPayment === undefined ? null : b.reportedPayment, paymentAmount: null, total: null, grandTotal: null,
+        cost: null, serviceFee: null, introducer: b.introducer || "", introducerProfit: null, sourceProfit: null,
+        docsStatus: "資料待逐組核對", ticketStatus: "待確認", assignedTo: b.staff || "J168", nextActionDate: "",
+        expiry: "", status: "資料待核對", statusType: "active", internalNotes: b.notes || "",
+        addOns: [], createdAt: b.createdAt || "", imported: true, cabin: b.cabin || "", starlux: b.starlux || "",
+        activity: [{ at: b.createdAt || "", text: "由 Google 試算表（PMR J168 雲端資料庫）同步匯入" }]
       });
     }
-    localStorage.setItem(ORDERS_KEY, JSON.stringify(retained));
-    localStorage.setItem(CUSTOMERS_KEY, JSON.stringify(people));
-    if ((snapshot.bookings || []).length) localStorage.setItem("pmr-real-orders-migration-v1","done");
+
+    if (changed) {
+      write(ORDERS_KEY, orders);
+      write(CUSTOMERS_KEY, customers);
+    }
+    return changed;
   }
 
   window.PMRStore = {
@@ -91,6 +120,7 @@
       else customers.unshift(clone(customer));
       return write(CUSTOMERS_KEY, customers);
     },
+    syncFromSheet: syncFromSheet_,
     reset() {
       localStorage.removeItem(ORDERS_KEY);
       localStorage.removeItem(PROJECTS_KEY);
@@ -98,4 +128,7 @@
       window.dispatchEvent(new CustomEvent("pmr-data-updated"));
     }
   };
+
+  // Kick off a background sync every time the page loads.
+  syncFromSheet_();
 })();
