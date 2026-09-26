@@ -659,9 +659,9 @@ qs("#booking-form").addEventListener("submit", event => {
     id: newId,
     customerId: "CUS-0001",
     lineUserId: "demo-yvonne",
-    lineDisplayName: "Yvonne",
+    lineDisplayName: formData.get("lineName"),
     customerName: formData.get("name"),
-    phone: formData.get("phone"),
+    phone: "",
     projectId: selectedProject.id,
     title: selectedProject.title,
     route: selectedProject.route,
@@ -708,7 +708,10 @@ qs("#booking-form").addEventListener("submit", event => {
     activity: [{ at: createdDate.replaceAll("-", "/"), text: `客戶由前台建立訂單，${ticketSelections.length} 張待匯款保留 1 天` }]
   };
   orders.unshift(newOrder);
-  if (window.PMRStore) window.PMRStore.upsertOrder(newOrder);
+  if (window.PMRStore) {
+    window.PMRStore.upsertOrder(newOrder);
+    window.PMRStore.pushOrderToSheet(newOrder);
+  }
   qs("#success-order-id").textContent = newId;
   qs("#success-reserved").textContent = `專案已保留 ${newOrder.purchased} 張，保留 1 天`;
   qs("#success-payment-account").textContent = paymentAccountText(newOrder);

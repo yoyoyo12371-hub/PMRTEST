@@ -42,6 +42,66 @@
     return (raw === "已確認" || raw === "已核帳") ? "已確認" : "待核帳";
   }
 
+  // Normalizes a customer name into a stable key so repeat customers
+  // (same name across multiple synced bookings) share one customer record.
+  function slugName_(name) {
+    return String(name || "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "");
+  }
+
+  // One-time migration: merges any already-synced per-order customer
+  // records (id pattern "J168-CUSTOMER-<orderId>") that share the same
+  // real name into a single canonical "J168-NAME-<slug>" customer record,
+  // and repoints every affected order's customerId at that canonical id.
+  // Guarded by a localStorage flag so it only ever runs once per browser.
+  const CONSOLIDATE_FLAG = "pmr-customer-name-consolidated-v1";
+  function consolidateCustomersByName_() {
+    if (localStorage.getItem(CONSOLIDATE_FLAG)) return false;
+
+    const orders = read(ORDERS_KEY, defaultOrders);
+    const customers = read(CUSTOMERS_KEY, defaultCustomers);
+    let changed = false;
+
+    const byNameKey = new Map();
+    const idRemap = new Map();
+
+    for (const customer of customers) {
+      if (!/^J168-CUSTOMER-/.test(customer.id)) continue;
+      const nameKey = slugName_(customer.realName || customer.displayName);
+      if (!nameKey) continue;
+      const canonicalId = "J168-NAME-" + nameKey;
+      if (!byNameKey.has(nameKey)) {
+        byNameKey.set(nameKey, { ...customer, id: canonicalId });
+      }
+      idRemap.set(customer.id, canonicalId);
+    }
+
+    if (idRemap.size === 0) {
+      localStorage.setItem(CONSOLIDATE_FLAG, "1");
+      return false;
+    }
+
+    const keptCustomers = customers
+      .filter(c => !idRemap.has(c.id))
+      .concat(Array.from(byNameKey.values()));
+
+    for (const order of orders) {
+      if (idRemap.has(order.customerId)) {
+        order.customerId = idRemap.get(order.customerId);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      write(CUSTOMERS_KEY, keptCustomers);
+      write(ORDERS_KEY, orders);
+    }
+    localStorage.setItem(CONSOLIDATE_FLAG, "1");
+    return changed;
+  }
+
   // Live sync: pulls the "預訂" tab of the PMR J168 雲端資料庫 Google Sheet
   // (via its Apps Script Web App) and adds any booking not already stored
   // locally. Existing orders are never overwritten, so admin edits made in
@@ -57,14 +117,16 @@
     }
     if (!data || data.ok === false || !Array.isArray(data.bookings)) return false;
 
+    let changed = consolidateCustomersByName_();
+
     const orders = read(ORDERS_KEY, defaultOrders).filter(o => !demoOrders.has(o.id));
     const customers = read(CUSTOMERS_KEY, defaultCustomers).filter(c => !demoCustomers.has(c.id));
-    let changed = false;
 
     for (const b of data.bookings) {
       if (!b || !b.id || orders.some(o => o.id === b.id)) continue;
       changed = true;
-      const customerId = "J168-CUSTOMER-" + b.id;
+      const nameKey = slugName_(b.customer);
+      const customerId = nameKey ? "J168-NAME-" + nameKey : "J168-CUSTOMER-" + b.id;
       if (!customers.some(c => c.id === customerId)) {
         customers.push({
           id: customerId, realName: b.customer || "", displayName: b.lineName || b.customer || "",
@@ -95,6 +157,45 @@
     return changed;
   }
 
+  // Write-back: pushes one order's key fields to the "預訂" sheet tab via
+  // the Apps Script Web App's doPost handler (action: "upsertOrder").
+  // Uses text/plain content-type so the browser doesn't send a CORS
+  // preflight (Apps Script Web Apps don't handle OPTIONS).
+  async function pushOrderToSheet_(order) {
+    if (!SHEET_API_URL || !order || !order.id) return false;
+    try {
+      const response = await fetch(SHEET_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "upsertOrder",
+          order: {
+            id: order.id,
+            assignedTo: order.assignedTo,
+            customerName: order.customerName,
+            title: order.title,
+            projectOriginal: order.projectOriginal,
+            purchased: order.purchased,
+            cabin: order.cabin,
+            starlux: order.starlux,
+            reportedPayment: order.reportedPayment,
+            paymentAmount: order.paymentAmount,
+            paymentStatus: order.paymentStatus,
+            used: order.used,
+            createdAt: order.createdAt,
+            lineDisplayName: order.lineDisplayName,
+            introducer: order.introducer,
+            internalNotes: order.internalNotes
+          }
+        })
+      });
+      const data = await response.json().catch(() => null);
+      return !!(data && data.ok);
+    } catch (_error) {
+      return false;
+    }
+  }
+
   window.PMRStore = {
     keys: { orders: ORDERS_KEY, projects: PROJECTS_KEY, customers: CUSTOMERS_KEY },
     getOrders() {
@@ -121,6 +222,7 @@
       return write(CUSTOMERS_KEY, customers);
     },
     syncFromSheet: syncFromSheet_,
+    pushOrderToSheet: pushOrderToSheet_,
     reset() {
       localStorage.removeItem(ORDERS_KEY);
       localStorage.removeItem(PROJECTS_KEY);

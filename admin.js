@@ -381,7 +381,10 @@ function saveSelectedOrder(event) {
   window.PMRStore.saveOrders(orders);
   renderAll();
   closeOrder();
-  toast("已儲存至本機；雲端同步尚未接通");
+  toast("已儲存，正在同步至 Google 試算表…");
+  window.PMRStore.pushOrderToSheet(order).then(ok => {
+    toast(ok ? "已同步至 Google 試算表" : "已儲存至本機；同步試算表失敗，請稍後重試");
+  });
 }
 
 function createOrder() {
@@ -393,6 +396,7 @@ function createOrder() {
   window.PMRStore.saveOrders(orders);
   renderAll();
   openOrder(order.id);
+  window.PMRStore.pushOrderToSheet(order);
 }
 
 function createProject() {
