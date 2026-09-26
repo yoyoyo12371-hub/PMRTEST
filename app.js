@@ -1,115 +1,17 @@
-const projects = [
-  {
-    id: "0914A",
-    category: "short",
-    categoryLabel: "亞洲短線",
-    title: "泰國繽紛三城隨心遊",
-    route: "曼谷・清邁・普吉島",
-    price: 32888,
-    businessPrice: 76888,
-    unitCost: 20000,
-    businessCost: 48000,
-    unit: "組",
-    credits: 4,
-    expiry: "2029/12/31",
-    remaining: 8,
-    symbol: "☀",
-    highlight: "泰國三座熱門城市可於兌換時任選，四張額度可分次安排。",
-    conditions: ["兌換時再選目的地", "四張可分次使用", "傳統航空直飛或轉機皆可", "此專案不含不同點進出"]
-  },
-  {
-    id: "0914B",
-    category: "europe",
-    categoryLabel: "歐洲線",
-    title: "北歐水岸雙城質感漫旅",
-    route: "阿姆斯特丹・哥本哈根",
-    price: 79888,
-    businessPrice: 198888,
-    unitCost: 44000,
-    businessCost: 114000,
-    unit: "組",
-    credits: 4,
-    expiry: "2030/12/31",
-    remaining: 4,
-    symbol: "♜",
-    highlight: "可安排阿姆斯特丹進、哥本哈根出，適合一次完成北歐雙城旅行。",
-    conditions: ["支援不同點進出", "四張可分次使用", "兌換時再確認城市", "傳統航空直飛或轉機皆可"]
-  },
-  {
-    id: "0914C",
-    category: "longhaul",
-    categoryLabel: "澳紐長程",
-    title: "澳紐單人限量輕旅行",
-    route: "墨爾本・奧克蘭",
-    price: 14888,
-    businessPrice: 39888,
-    unitCost: 9900,
-    businessCost: 25000,
-    unit: "張",
-    credits: 1,
-    expiry: "2027/12/31",
-    remaining: 7,
-    symbol: "✦",
-    highlight: "不必湊組數，單人也能先收藏澳紐長程旅遊額度。",
-    conditions: ["單張拆售", "墨爾本或奧克蘭擇一", "剩餘 7 張", "此專案不含不同點進出"]
-  }
-];
+// Projects come from the "專案" tab of the Google Sheet (synced into
+// PMRStore by shared-data.js). Staff add/remove rows directly in the
+// sheet; this site just mirrors whatever is there.
+let allProjects = [];
+let projects = [];
 
-const archivedProjects = [
-  {
-    id: "0913A", category: "short", categoryLabel: "最近五日", title: "日韓潮流四城隨心飛",
-    route: "東京・大阪・首爾・釜山", price: 32888, businessPrice: 76888, unitCost: 20000, businessCost: 48000, unit: "組", credits: 4,
-    expiry: "2029/12/31", remaining: 3, symbol: "◉", archived: true,
-    highlight: "四座日韓城市可任選；本專案允許同一組分次兌換，但每次限單一目的地。",
-    conditions: ["兌換時再選目的地", "四張可分次使用", "每次兌換限單一目的地", "不含不同點進出"]
-  },
-  {
-    id: "0912B", category: "europe", categoryLabel: "最近五日", title: "英法雙城經典假期",
-    route: "倫敦・巴黎", price: 76999, businessPrice: 188999, unitCost: 44000, businessCost: 114000, unit: "組", credits: 4,
-    expiry: "2029/12/31", remaining: 2, symbol: "♙", archived: true,
-    highlight: "可選倫敦或巴黎單點往返，也可申請倫敦進、巴黎出。",
-    conditions: ["支援不同點進出", "四張可分次使用", "傳統航空為主", "實際航班依兌換結果為準"]
-  },
-  {
-    id: "0911C", category: "longhaul", categoryLabel: "最近五日", title: "美西雙城自由行",
-    route: "洛杉磯・西雅圖", price: 29799, businessPrice: 69999, unitCost: 19800, businessCost: 50000, unit: "組", credits: 2,
-    expiry: "2028/12/31", remaining: 4, symbol: "✧", archived: true,
-    highlight: "兩人一組的長程方案，適合雙人同行；本案僅提供單點來回。",
-    conditions: ["兩人一組", "洛杉磯或西雅圖擇一", "不可不同點進出", "可後補護照與航班"]
-  },
-  {
-    id: "0910A", category: "short", categoryLabel: "最近五日", title: "越南海岸雙城漫遊",
-    route: "峴港・胡志明", price: 16888, businessPrice: 38888, unitCost: 11000, businessCost: 25000, unit: "組", credits: 2,
-    expiry: "2028/12/31", remaining: 5, symbol: "≈", archived: true,
-    highlight: "兩張可分開使用，峴港與胡志明不必在同一次旅程兌換。",
-    conditions: ["兩張可分次使用", "兌換時再選城市", "每張限單一城市來回", "不含不同點進出"]
-  },
-  {
-    id: "0909A", category: "short", categoryLabel: "最近五日", title: "九州沖繩單張特惠",
-    route: "福岡・熊本・沖繩", price: 8999, businessPrice: 19999, unitCost: 5500, businessCost: 12500, unit: "張", credits: 1,
-    expiry: "2027/12/31", remaining: 6, symbol: "◌", archived: true,
-    highlight: "舊專案仍可用代碼叫出，單張購買、不需配對成組。",
-    conditions: ["單張拆售", "三個目的地擇一", "剩餘 6 張", "不含不同點進出"]
-  },
-  {
-    id: "0913D", category: "private", categoryLabel: "私人專案", title: "PMR 私享單張方案",
-    route: "指定短線航點", price: 8888, businessPrice: 18888, unitCost: 5500, businessCost: 12500, unit: "張", credits: 1,
-    expiry: "2027/12/31", remaining: 4, symbol: "◆", archived: true, private: true,
-    highlight: "由客服為指定客人建立的臨時單張專案，輸入代碼後才會顯示。",
-    conditions: ["限收到代碼的指定客人", "單張使用", "目的地由客服個別確認", "不含不同點進出"]
-  }
-];
-
-const allProjects = [...projects, ...archivedProjects];
-
-const storedProjectMap = new Map((window.PMRStore?.getProjects?.() || []).map(project => [project.id, project]));
-allProjects.forEach(project => {
-  const stored = storedProjectMap.get(project.id);
-  if (stored) {
-    Object.assign(project, stored);
-    project.remaining = stored.stock ?? project.remaining;
-  }
-});
+function loadProjectsFromStore() {
+  const stored = (window.PMRStore?.getProjects?.() || []).map(p => ({ ...p }));
+  allProjects = stored;
+  projects = stored
+    .filter(p => (p.status || "公開") !== "下架")
+    .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+}
+loadProjectsFromStore();
 
 const faqCategories = [
   {
@@ -259,33 +161,38 @@ function paymentAccountHtml(order) {
 
 function projectCard(project, compact = false) {
   return `<article class="project-card${compact ? " search-project-card" : ""}">
-      <div class="project-cover ${project.category}">
-        <div class="project-tags"><span>${project.categoryLabel}</span><span>剩餘 ${project.remaining} ${project.unit}</span></div>
-        <div class="project-symbol">${project.symbol}</div>
-        <div class="project-code">${project.id}・${project.private ? "限定代碼" : project.archived ? "歷史專案" : "當日限定"}</div>
+      <div class="project-cover short">
+        <div class="project-tags"><span>${project.date || ""}</span></div>
+        <div class="project-symbol">✦</div>
+        <div class="project-code">${project.id}</div>
       </div>
       <div class="project-body">
         <h3>${project.title}</h3>
-        <p class="route">✈ ${project.route}</p>
-        <div class="project-highlight"><strong>這個專案特別在哪裡</strong><p>${project.highlight}</p></div>
-        <details class="project-details">
-          <summary>查看完整專案內容</summary>
-          <ul>${project.conditions.map(condition => `<li>${condition}</li>`).join("")}</ul>
-          <p>使用效期：${project.expiry}</p>
-          <p>商務艙方案：${money(project.businessPrice)}</p>
-        </details>
-        <div class="project-meta"><span>${project.credits === 1 ? "單張使用" : `一組 ${project.credits} 位`}</span><span>效期 ${project.expiry}</span><span>${project.conditions.some(item => item.includes("不同點進出") && !item.includes("不含") && !item.includes("不可")) ? "可不同點進出" : "單點往返"}</span></div>
+        ${project.route ? `<p class="route">✈ ${project.route}</p>` : ""}
+        <div class="project-meta">
+          <span>經濟艙 ${money(project.price)}</span>
+          ${project.businessPrice ? `<span>商務艙 ${money(project.businessPrice)}</span>` : ""}
+          ${project.expiry ? `<span>效期 ${project.expiry}</span>` : ""}
+        </div>
+        ${project.note ? `<p class="route">${project.note}</p>` : ""}
         <div class="project-price">
-          <div><small>優惠售價</small><strong>${money(project.price)}</strong></div>
-          <button class="book-btn" data-book-project="${project.id}">${project.archived ? "選擇此專案" : "立即預訂"}</button>
+          <div><small>經濟艙起</small><strong>${money(project.price)}</strong></div>
+          <button class="book-btn" data-book-project="${project.id}">立即預訂</button>
         </div>
       </div>
     </article>`;
 }
 
-function renderProjects(filter = "all") {
-  const visible = filter === "all" ? projects : projects.filter(project => project.category === filter);
-  qs("#project-grid").innerHTML = visible.map(project => projectCard(project)).join("");
+function renderProjects() {
+  qs("#project-grid").innerHTML = projects.length
+    ? projects.map(project => projectCard(project)).join("")
+    : `<div class="empty-state">目前沒有上架中的專案，請稍後再回來看看。</div>`;
+  const countEl = qs("#project-count");
+  if (countEl) countEl.textContent = `${projects.length} 個方案`;
+  const recentEl = qs("#recent-codes");
+  if (recentEl) {
+    recentEl.innerHTML = projects.slice(0, 5).map(project => `<button type="button" data-code-example="${project.id}">${project.id}</button>`).join("");
+  }
 }
 
 function lookupProject(rawCode) {
@@ -409,7 +316,7 @@ function setBookingStep(step) {
 }
 
 function updateBookingSummary() {
-  qs("#booking-project-summary").innerHTML = `<div class="summary-symbol">${selectedProject.symbol}</div><div><strong>${selectedProject.id}｜${selectedProject.title}</strong><small>${selectedProject.route}</small></div>`;
+  qs("#booking-project-summary").innerHTML = `<div class="summary-symbol">✦</div><div><strong>${selectedProject.id}｜${selectedProject.title}</strong><small>${selectedProject.route || ""}</small></div>`;
 }
 
 function showToast(message) {
@@ -423,13 +330,6 @@ function showToast(message) {
 document.addEventListener("click", event => {
   const viewButton = event.target.closest("[data-view-target]");
   if (viewButton) switchView(viewButton.dataset.viewTarget);
-
-  const filterButton = event.target.closest("[data-filter]");
-  if (filterButton) {
-    qsa("[data-filter]").forEach(button => button.classList.remove("is-active"));
-    filterButton.classList.add("is-active");
-    renderProjects(filterButton.dataset.filter);
-  }
 
   const orderFilter = event.target.closest("[data-order-filter]");
   if (orderFilter) {
@@ -489,7 +389,8 @@ qs("#booking-form").addEventListener("submit", event => {
   }
   const introducer = formData.get("referrer");
   const ticketSubtotal = economyCount * Number(selectedProject.price || 0) + businessCount * Number(selectedProject.businessPrice || 0);
-  const starluxTotal = starluxCount * STARLUX_PRICE_PER_TICKET;
+  const starluxUnitPrice = selectedProject.starluxPrice != null ? Number(selectedProject.starluxPrice) : STARLUX_PRICE_PER_TICKET;
+  const starluxTotal = starluxCount * starluxUnitPrice;
   const grandTotal = ticketSubtotal + starluxTotal;
   const createdDate = localDate();
   const reservationDate = localDate(new Date(Date.now() + 86400000));
@@ -579,8 +480,13 @@ window.addEventListener("storage", event => {
 window.addEventListener("pmr-data-updated", event => {
   if (!window.PMRStore) return;
   const key = event.detail?.key;
-  if (key && key !== window.PMRStore.keys.orders) return;
-  orders = window.PMRStore.getOrders().filter(order => order.customerId === "CUS-0001");
-  selectedOrder = orders[0];
-  renderOrders();
+  if (!key || key === window.PMRStore.keys.orders) {
+    orders = window.PMRStore.getOrders().filter(order => order.customerId === "CUS-0001");
+    selectedOrder = orders[0];
+    renderOrders();
+  }
+  if (!key || key === window.PMRStore.keys.projects) {
+    loadProjectsFromStore();
+    renderProjects();
+  }
 });

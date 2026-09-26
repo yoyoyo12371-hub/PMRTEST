@@ -117,6 +117,26 @@
     }
     if (!data || data.ok === false || !Array.isArray(data.bookings)) return false;
 
+    if (Array.isArray(data.projects)) {
+      var mappedProjects = data.projects.map(function (p) {
+        return {
+          id: p.id,
+          date: p.date || "",
+          title: p.title || p.id || "",
+          route: p.route || "",
+          price: Number(p.price || 0),
+          unitCost: Number(p.unitCost || 0),
+          businessPrice: Number(p.businessPrice || 0),
+          businessCost: Number(p.businessCost || 0),
+          starluxPrice: p.starluxPrice === null || p.starluxPrice === undefined ? null : Number(p.starluxPrice),
+          expiry: p.expiry || "",
+          status: p.status || "公開",
+          note: p.note || ""
+        };
+      });
+      write(PROJECTS_KEY, mappedProjects);
+    }
+
     let changed = consolidateCustomersByName_();
 
     const orders = read(ORDERS_KEY, defaultOrders).filter(o => !demoOrders.has(o.id));

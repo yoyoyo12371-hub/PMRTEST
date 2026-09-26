@@ -91,10 +91,10 @@
         </section>
 
         <section class="ops-view" id="projects-view">
-          <div class="page-actions"><div><p>集中管理經濟艙／商務艙售價、成本、效期、庫存與每個專案的特殊規則。</p></div><button class="primary-action" data-action="new-project">＋ 建立私人專案</button></div>
+          <div class="page-actions"><div><p>專案現在直接在 Google 試算表的「專案」分頁管理：新增一列＝上架一個專案，刪除該列＝下架。網站每次讀取都會抓最新內容，不需要在後台另外新增。</p></div><a class="primary-action" href="https://docs.google.com/spreadsheets/d/1DvbmhfrKHuPazQv3ZsnAHBp3Qs2b7ptuDI60qFxun0c/edit#gid=882357960" target="_blank" rel="noopener">開啟專案試算表</a></div>
           <section class="panel table-panel">
-            <div class="project-summary"><strong id="project-count">0</strong><span>個可銷售專案</span><i></i><strong id="project-stock">0</strong><span>組／張剩餘</span></div>
-            <div class="table-wrap"><table><thead><tr><th>代碼／專案名稱</th><th>目的地／航線</th><th>顯示方式</th><th>經濟售價／成本</th><th>商務售價／成本</th><th>額度</th><th>效期</th><th>特殊規則</th></tr></thead><tbody id="projects-table"></tbody></table></div>
+            <div class="project-summary"><strong id="project-count">0</strong><span>個目前上架專案</span></div>
+            <div class="table-wrap"><table><thead><tr><th>日期</th><th>代碼／名稱</th><th>路線</th><th>經濟售價／成本</th><th>商務售價／成本</th><th>星宇加價</th><th>效期</th><th>狀態</th></tr></thead><tbody id="projects-table"></tbody></table></div>
           </section>
         </section>
 
@@ -148,7 +148,7 @@
     </aside>
 
     <div class="toast" id="admin-toast"></div>
-    <script src="shared-data.js?v=sheet-sync-2"></script>
-    <script src="admin.js?v=sheet-sync-2"></script>
+    <script src="shared-data.js?v=simple-2"></script>
+    <script src="admin.js?v=simple-2"></script>
   </body>
 </html>

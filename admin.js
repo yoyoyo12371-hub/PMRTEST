@@ -156,17 +156,16 @@ function renderOrders() {
 
 function renderProjects() {
   qs("#project-count").textContent = projects.length;
-  qs("#project-stock").textContent = projects.reduce((sum, project) => sum + numberValue(project.stock), 0);
-  qs("#projects-table").innerHTML = projects.map(project => `<tr data-project-id="${project.id}">
-    <td><strong>${project.id}｜${project.title}</strong><small>${project.route}</small></td>
-    <td><select class="inline-select" data-project-field="status"><option ${project.status === "公開" ? "selected" : ""}>公開</option><option ${project.status === "代碼限定" ? "selected" : ""}>代碼限定</option><option ${project.status === "下架" ? "selected" : ""}>下架</option></select></td>
-    <td><div class="money-inputs"><label>售<input class="inline-input" data-project-field="price" type="number" value="${project.price}"></label><label>本<input class="inline-input" data-project-field="unitCost" type="number" value="${project.unitCost}"></label></div></td>
-    <td><div class="money-inputs"><label>售<input class="inline-input" data-project-field="businessPrice" type="number" value="${project.businessPrice || 0}"></label><label>本<input class="inline-input" data-project-field="businessCost" type="number" value="${project.businessCost || 0}"></label></div></td>
-    <td><input class="inline-input small" data-project-field="credits" type="number" value="${project.credits}"></td>
-    <td><input class="inline-input small" data-project-field="stock" type="number" value="${project.stock}"></td>
-    <td><input class="inline-input date" data-project-field="expiry" value="${project.expiry}"></td>
-    <td><textarea class="inline-textarea" data-project-field="special">${project.special}</textarea><button class="save-row" data-save-project="${project.id}">儲存</button></td>
-  </tr>`).join("");
+  qs("#projects-table").innerHTML = projects.length ? projects.map(project => `<tr data-project-id="${project.id}">
+    <td>${project.date || ""}</td>
+    <td><strong>${project.id}</strong><small>${project.title || ""}</small></td>
+    <td>${project.route || ""}</td>
+    <td>售 ${money(project.price)}／本 ${money(project.unitCost)}</td>
+    <td>售 ${money(project.businessPrice)}／本 ${money(project.businessCost)}</td>
+    <td>${project.starluxPrice != null ? money(project.starluxPrice) : "—"}</td>
+    <td>${project.expiry || ""}</td>
+    <td>${project.status || "公開"}</td>
+  </tr>`).join("") : `<tr><td colspan="8">目前試算表「專案」分頁還沒有資料，請先在試算表新增一列。</td></tr>`;
 }
 
 function renderAll() {
@@ -399,29 +398,6 @@ function createOrder() {
   window.PMRStore.pushOrderToSheet(order);
 }
 
-function createProject() {
-  const ids = new Set(projects.map(project => project.id));
-  const letters = "DEFGHIJKLMNOPQRSTUVWXYZ";
-  const id = [...letters].map(letter => `0914${letter}`).find(code => !ids.has(code)) || `0914X${projects.length}`;
-  projects.unshift({ id, title: "客服私人專案", route: "指定目的地", status: "代碼限定", price: 0, businessPrice: 0, unitCost: 0, businessCost: 0, credits: 1, stock: 1, expiry: "2027/12/31", special: "請填寫此專案的完整使用條件" });
-  window.PMRStore.saveProjects(projects);
-  renderProjects();
-  toast(`已建立 ${id}，請在表格內完成設定`);
-}
-
-function saveProject(projectId) {
-  const row = qs(`[data-project-id="${projectId}"]`);
-  const project = projects.find(item => item.id === projectId);
-  if (!row || !project) return;
-  row.querySelectorAll("[data-project-field]").forEach(input => {
-    const field = input.dataset.projectField;
-    project[field] = ["price", "businessPrice", "unitCost", "businessCost", "credits", "stock"].includes(field) ? numberValue(input.value) : input.value;
-  });
-  window.PMRStore.saveProjects(projects);
-  renderProjects();
-  toast(`${projectId} 已儲存（展示資料）`);
-}
-
 document.addEventListener("click", event => {
   const viewButton = event.target.closest("[data-view]");
   if (viewButton) switchView(viewButton.dataset.view);
@@ -431,8 +407,6 @@ document.addEventListener("click", event => {
   if (orderTarget) openOrder(orderTarget.dataset.orderId);
   const customerTarget = event.target.closest("[data-customer-id]");
   if (customerTarget) openCustomer(customerTarget.dataset.customerId);
-  const saveProjectButton = event.target.closest("[data-save-project]");
-  if (saveProjectButton) saveProject(saveProjectButton.dataset.saveProject);
   const action = event.target.closest("[data-action]")?.dataset.action;
   if (action === "close-drawer") closeOrder();
   if (action === "close-customer-drawer") closeCustomer();
@@ -440,7 +414,6 @@ document.addEventListener("click", event => {
   if (action === "new-customer") createCustomer();
   if (action === "archive-customer") archiveCustomer();
   if (action === "anonymize-customer") anonymizeCustomer();
-  if (action === "new-project") createProject();
   if (action === "toggle-menu") qs(".sidebar").classList.toggle("is-open");
 });
 
@@ -469,9 +442,10 @@ window.addEventListener("storage", event => {
 
 window.addEventListener("pmr-data-updated", event => {
   const key = event.detail?.key;
-  if (key && key !== window.PMRStore.keys.orders && key !== window.PMRStore.keys.customers) return;
+  if (key && key !== window.PMRStore.keys.orders && key !== window.PMRStore.keys.customers && key !== window.PMRStore.keys.projects) return;
   orders = window.PMRStore.getOrders();
   customers = window.PMRStore.getCustomers();
+  projects = window.PMRStore.getProjects();
   renderAll();
 });
 
